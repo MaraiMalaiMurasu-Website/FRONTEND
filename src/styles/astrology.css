@@ -1,0 +1,297 @@
+/* Astrology Page Styles */
+
+.astrology-page .page-header {
+  padding: 32px 0 24px;
+  border-bottom: 2px solid var(--ink);
+  margin-bottom: 32px;
+}
+.astrology-page .breadcrumb {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-3);
+  margin-bottom: 12px;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.astrology-page .breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+.astrology-page .breadcrumb a:hover {
+  text-decoration: underline;
+}
+.astrology-page .page-title {
+  font-family: var(--serif);
+  font-size: 42px;
+  font-weight: 800;
+  margin: 0 0 8px;
+  color: var(--ink);
+}
+.astrology-page .page-subtitle {
+  font-family: var(--sans);
+  font-size: 16px;
+  color: var(--ink-2);
+  margin: 0;
+}
+
+/* Page Layout */
+.astrology-layout {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 40px;
+  align-items: start;
+}
+
+.astrology-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.sticky-ad {
+  position: sticky;
+  top: 80px;
+}
+
+.sidebar-widget {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 6px;
+}
+
+.sidebar-widget .widget-head h3 {
+  font-family: var(--serif);
+  font-size: 18px;
+  margin: 0 0 16px;
+  color: var(--accent);
+  border-left: 4px solid var(--accent);
+  padding-left: 12px;
+}
+
+.sidebar-widget .widget-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar-widget .w-item {
+  display: flex;
+  gap: 8px;
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--ink);
+  text-decoration: none;
+}
+
+.sidebar-widget .w-item:hover {
+  color: var(--accent);
+}
+
+.sidebar-widget .w-icon {
+  font-size: 12px;
+}
+
+/* Panchangam Section */
+.panchangam-section {
+  margin-bottom: 40px;
+}
+.panchangam-box {
+  background: var(--paper-2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+.panchangam-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 20px;
+  border-bottom: 1px dashed var(--rule);
+  padding-bottom: 12px;
+}
+.panchangam-header h2 {
+  font-family: var(--serif);
+  font-size: 24px;
+  color: var(--accent);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.panchangam-header h2::before {
+  content: '☀';
+  font-size: 20px;
+}
+.panchangam-header .date {
+  font-family: var(--sans);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ink-2);
+}
+.panchangam-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.panchangam-grid .p-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.panchangam-grid .label {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-3);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+.panchangam-grid .val {
+  font-family: var(--serif);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Rasi Palan Grid */
+.rasi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+.rasi-card {
+  border: 1px solid var(--rule);
+  padding: 20px;
+  border-radius: 6px;
+  background: var(--paper);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.rasi-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  border-color: var(--accent);
+}
+.rasi-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.rasi-icon {
+  width: 40px;
+  height: 40px;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+}
+.rasi-card h3 {
+  font-family: var(--serif);
+  font-size: 20px;
+  font-weight: 800;
+  margin: 0;
+  color: var(--ink);
+}
+.rasi-card p {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--ink-2);
+  margin: 0 0 16px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.rasi-action a {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+.rasi-action a:hover {
+  text-decoration: underline;
+}
+
+/* Spiritual Articles List */
+.spiritual-articles .article-list {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+.spiritual-articles .article-item {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 16px;
+  border: 1px solid var(--rule);
+  padding: 12px;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+.spiritual-articles .article-item:hover {
+  background: var(--paper-2);
+}
+.spiritual-articles .article-thumb {
+  width: 100%;
+  aspect-ratio: 4/3;
+  background: var(--rule-2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+}
+.spiritual-articles .article-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.spiritual-articles h4 {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  margin: 0 0 8px;
+  color: var(--ink);
+  line-height: 1.4;
+}
+.spiritual-articles .meta {
+  font-family: var(--sans);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+
+@media (max-width: 900px) {
+  .astrology-layout {
+    grid-template-columns: 1fr;
+  }
+  .astrology-sidebar {
+    display: none; /* Hide sidebar on mobile for simplicity, or we can move it below */
+  }
+  .panchangam-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .rasi-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .spiritual-articles .article-list {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .panchangam-grid {
+    grid-template-columns: 1fr;
+  }
+  .rasi-grid {
+    grid-template-columns: 1fr;
+  }
+  .panchangam-header {
+    flex-direction: column;
+    gap: 8px;
+  }
+}

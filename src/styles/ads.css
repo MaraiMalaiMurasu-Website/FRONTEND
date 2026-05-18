@@ -1,0 +1,405 @@
+/* ============================================================
+   AD SYSTEM
+   ----
+   Three ad networks are supported as visually-distinct slot
+   stubs: Google AdSense / AdManager, Meta Audience Network,
+   and direct sponsor / house ads.
+   ============================================================ */
+
+:root {
+  --ad-google-fg: #1a73e8;
+  --ad-google-bg: #e8f0fe;
+  --ad-meta-fg:   #0866ff;
+  --ad-meta-bg:   #e7f0ff;
+  --ad-sponsor-fg: var(--accent, #C8102E);
+  --ad-sponsor-bg: #fbecec;
+  --ad-house-fg:  #6b5a3d;
+  --ad-house-bg:  #f1eadb;
+}
+
+/* ---------- AD TAG (label pill) ---------- */
+.ad-tag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--sans);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  background: var(--ink);
+  color: #F2ECE0;
+  z-index: 2;
+  white-space: nowrap;
+}
+.ad-tag-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.65;
+  flex: none;
+}
+.ad-tag-ta { font-family: var(--serif); font-weight: 700; letter-spacing: 0; font-size: 10px; }
+.ad-tag-en { opacity: 0.6; padding-left: 6px; border-left: 1px solid rgba(255,255,255,0.25); margin-left: 2px; }
+.ad-tag-id {
+  margin-left: auto;
+  padding: 1px 6px;
+  background: rgba(255,255,255,0.15);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+}
+
+.ad-slot .ad-tag {
+  right: 0;
+  display: flex;
+}
+
+.ad-tag-google  { background: #1f2937; }
+.ad-tag-google .ad-tag-dot { background: var(--ad-google-fg); opacity: 1; }
+.ad-tag-meta    { background: #111827; }
+.ad-tag-meta .ad-tag-dot { background: var(--ad-meta-fg); opacity: 1; }
+.ad-tag-sponsor { background: var(--accent); }
+.ad-tag-sponsor .ad-tag-dot { background: #fff; opacity: 1; }
+.ad-tag-house   { background: var(--ink); }
+.ad-tag-house .ad-tag-dot { background: var(--ad-house-fg); opacity: 1; }
+
+/* ---------- GENERIC AD SLOT ---------- */
+.ad-slot {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  background:
+    repeating-linear-gradient(45deg, var(--paper-2), var(--paper-2) 14px, var(--paper-3) 14px, var(--paper-3) 28px);
+  border: 1px dashed var(--rule);
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+.ad-slot-filled { overflow: hidden; padding: 0; border-style: solid; }
+.ad-slot-filled img { display: block; }
+.ad-slot-google  { border-color: rgba(26, 115, 232, 0.35); background:
+  repeating-linear-gradient(45deg, var(--ad-google-bg), var(--ad-google-bg) 14px, #f3f7fe 14px, #f3f7fe 28px); }
+.ad-slot-meta    { border-color: rgba(8, 102, 255, 0.35); background:
+  repeating-linear-gradient(45deg, var(--ad-meta-bg), var(--ad-meta-bg) 14px, #f1f5ff 14px, #f1f5ff 28px); }
+.ad-slot-sponsor { border-color: rgba(200, 16, 46, 0.4); background:
+  repeating-linear-gradient(45deg, var(--ad-sponsor-bg), var(--ad-sponsor-bg) 14px, #fdf4f4 14px, #fdf4f4 28px); }
+.ad-slot-house   { border-color: rgba(107, 90, 61, 0.45); background:
+  repeating-linear-gradient(45deg, var(--ad-house-bg), var(--ad-house-bg) 14px, #f7f1e2 14px, #f7f1e2 28px); }
+
+.ad-slot-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px;
+}
+.ad-slot-size {
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: 0.02em;
+}
+.ad-slot-note {
+  font-family: var(--sans);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ad-slot-id {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--ink-3);
+  opacity: 0.7;
+  letter-spacing: 0.05em;
+}
+.ad-slot-corner {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.04);
+  color: var(--ink-2);
+}
+.ad-slot-google .ad-slot-corner  { background: var(--ad-google-fg); color: #fff; }
+.ad-slot-meta    .ad-slot-corner { background: var(--ad-meta-fg);   color: #fff; }
+.ad-slot-sponsor .ad-slot-corner { background: var(--accent);       color: #fff; }
+.ad-slot-house   .ad-slot-corner { background: var(--ad-house-fg);  color: #fff; }
+
+/* compact slot variant (smaller fonts) */
+.ad-slot[data-size="320x100"] .ad-slot-size,
+.ad-slot[data-size="728x90"]  .ad-slot-size {
+  font-size: 16px;
+}
+.ad-slot[data-size="320x100"] .ad-slot-note,
+.ad-slot[data-size="728x90"]  .ad-slot-note {
+  font-size: 9px;
+}
+
+/* ---------- SPONSOR CARD (native) ---------- */
+.sponsor-card {
+  position: relative;
+  border-top: 2px solid var(--accent);
+  border-bottom: 2px solid var(--accent);
+  padding: 22px 0 18px;
+  background: linear-gradient(180deg, #fff8f4 0%, transparent 100%);
+}
+.sponsor-card .ad-tag { left: 0; top: -2px; }
+.sponsor-card-body {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  gap: 22px;
+  align-items: center;
+  padding: 8px 0 4px;
+}
+.sponsor-card-stack .sponsor-card-body {
+  grid-template-columns: 100% / 1fr;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+.sponsor-thumb .ph {
+  aspect-ratio: 1;
+  background: repeating-linear-gradient(45deg, #EFE7D8, #EFE7D8 8px, #E5DCC9 8px, #E5DCC9 16px);
+  display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); font-size: 11px; color: var(--ink-3);
+  border: 1px solid var(--rule-2);
+}
+.sponsor-brand {
+  font-family: var(--sans);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 6px;
+}
+.sponsor-text h4 {
+  font-family: var(--serif);
+  font-size: 22px;
+  font-weight: 800;
+  margin: 0 0 6px;
+  line-height: 1.25;
+  text-wrap: balance;
+}
+.sponsor-text p {
+  font-family: var(--serif);
+  font-size: 14px;
+  color: var(--ink-2);
+  margin: 0 0 10px;
+  line-height: 1.5;
+}
+.sponsor-cta {
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent);
+  cursor: pointer;
+}
+.sponsor-cta:hover { text-decoration: underline; }
+
+/* ---------- IN-FEED AD ---------- */
+.ad-infeed {
+  position: relative;
+  display: block;
+  border: 1px solid var(--rule);
+  background: var(--paper-2);
+  margin: 24px 0;
+  padding: 28px 16px 16px;
+  text-decoration: none;
+}
+.ad-infeed-body {
+  display: grid;
+  grid-template-columns: 56px 1fr auto;
+  gap: 14px;
+  align-items: center;
+}
+.ad-infeed-thumb {
+  width: 56px;
+  height: 56px;
+  background: var(--ink);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--mono);
+  font-size: 22px;
+  font-weight: 700;
+}
+.ad-infeed:has(.ad-tag-google) .ad-infeed-thumb  { background: var(--ad-google-fg); }
+.ad-infeed:has(.ad-tag-meta)   .ad-infeed-thumb  { background: var(--ad-meta-fg); }
+.ad-infeed:has(.ad-tag-sponsor) .ad-infeed-thumb { background: var(--accent); }
+.ad-infeed-text strong {
+  display: block;
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--ink);
+}
+.ad-infeed-text span {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+}
+.ad-infeed-cta {
+  font-size: 28px;
+  color: var(--ink-3);
+  padding-right: 6px;
+}
+
+/* ---------- AD RAIL (sidebar stack) ---------- */
+.ad-rail {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  position: sticky;
+  top: 100px;
+}
+.ad-rail .ad-slot { width: 100%; }
+
+/* ---------- ANCHOR AD (sticky bottom) ---------- */
+.ad-anchor {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px;
+  background: var(--paper);
+  border-top: 1px solid var(--rule);
+  box-shadow: 0 -8px 24px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+  padding: 0 16px;
+}
+.ad-anchor .ad-tag { left: 16px; top: 4px; }
+.ad-anchor-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 6px 28px;
+  border: 1px dashed var(--rule);
+  background: var(--paper-2);
+  width: 100%;
+  max-width: 728px;
+  height: 70px;
+  justify-content: center;
+}
+.ad-anchor-size {
+  font-family: var(--mono);
+  font-size: 16px;
+  font-weight: 700;
+}
+.ad-anchor-note {
+  font-family: var(--sans);
+  font-size: 10px;
+  color: var(--ink-3);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+.ad-anchor-close {
+  position: absolute;
+  top: 6px;
+  right: 12px;
+  width: 24px;
+  height: 24px;
+  border: 1px solid var(--rule);
+  background: var(--paper);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--ink-2);
+}
+.ad-anchor-close:hover { background: var(--ink); color: #fff; }
+
+/* ---------- ADVERTISE-WITH-US BLOCK ---------- */
+.advertise-cta {
+  margin: 60px 0 0;
+  background: var(--ink);
+  color: #F2ECE0;
+  padding: 40px 44px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 28px;
+  align-items: center;
+}
+.advertise-cta h3 {
+  font-family: var(--serif);
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 10px;
+  color: #fff;
+  letter-spacing: -0.01em;
+}
+.advertise-cta p {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: #cfc7b8;
+  margin: 0;
+  line-height: 1.55;
+  max-width: 64ch;
+}
+.advertise-cta .networks {
+  display: flex;
+  gap: 8px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+.advertise-cta .networks span {
+  font-family: var(--sans);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  padding: 5px 10px;
+  background: rgba(255,255,255,0.08);
+  border: 1px solid rgba(255,255,255,0.15);
+}
+.advertise-cta .btn {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: center;
+  background: var(--accent);
+  color: #fff;
+  text-decoration: none;
+  padding: 18px 26px;
+  font-family: var(--sans);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 12px;
+}
+.advertise-cta .btn small {
+  font-family: var(--mono);
+  font-weight: 400;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+  text-transform: none;
+}
+
+@media (max-width: 900px) {
+  .sponsor-card-body { grid-template-columns: 100px 1fr; }
+  .sponsor-card-body .sponsor-cta { grid-column: 1 / -1; justify-self: end; }
+  .advertise-cta { grid-template-columns: 1fr; }
+}

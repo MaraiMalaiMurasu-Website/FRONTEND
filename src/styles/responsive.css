@@ -1,0 +1,161 @@
+/* responsive.css — Maraimalai Murasu responsive breakpoints
+   Mobile-first polish for tablets and phones. */
+
+html { scroll-behavior: smooth; }
+
+/* ============================================================
+   COOKING PAGE FILTER TABS — orange hover/click animations
+============================================================ */
+.cooking-filter-tab {
+  padding: 8px 20px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 700;
+  font-family: inherit;
+  color: #9A3412;
+  background: #fff;
+  border: 1px solid #FED7AA;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.22s ease, color 0.22s ease, border-color 0.22s ease, transform 0.18s ease, box-shadow 0.22s ease;
+  position: relative;
+  outline: none;
+}
+
+/* Default hover (non-active) — animate to orange */
+.cooking-filter-tab:hover {
+  background: #FB923C;
+  color: #fff;
+  border-color: #FB923C;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(249, 115, 22, 0.32);
+}
+
+/* Active state (selected tab — orange filled) */
+.cooking-filter-tab.is-active {
+  background: #F97316;
+  color: #fff;
+  border-color: #F97316;
+  box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35);
+}
+
+.cooking-filter-tab.is-active:hover {
+  background: #EA580C;
+  border-color: #EA580C;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(234, 88, 12, 0.4);
+}
+
+/* Click / pressed state — squish slightly for tactile feedback */
+.cooking-filter-tab:active {
+  transform: translateY(0) scale(0.96);
+  box-shadow: 0 2px 6px rgba(249, 115, 22, 0.25);
+  transition-duration: 0.08s;
+}
+
+/* Keyboard focus ring */
+.cooking-filter-tab:focus-visible {
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.35), 0 4px 12px rgba(249, 115, 22, 0.25);
+}
+
+/* Subtle pulse on the active tab to draw the eye */
+@keyframes cooking-tab-pulse {
+  0%, 100% { box-shadow: 0 4px 12px rgba(249, 115, 22, 0.35); }
+  50%      { box-shadow: 0 4px 18px rgba(249, 115, 22, 0.55); }
+}
+.cooking-filter-tab.is-active {
+  animation: cooking-tab-pulse 2.4s ease-in-out infinite;
+}
+.cooking-filter-tab.is-active:hover {
+  animation: none; /* let hover transform stand alone */
+}
+
+/* ============================================================
+   TABLET (≤ 1024px) — sidebars stack
+============================================================ */
+@media (max-width: 1024px) {
+  .cat-grid, .law-grid, .app-body-grid {
+    grid-template-columns: 1fr !important;
+    gap: 24px !important;
+  }
+  .cat-sidebar, .law-sidebar {
+    order: 2;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  .cat-title { font-size: 38px !important; }
+  .cat-featured { grid-template-columns: 1fr !important; }
+  .cat-featured-img { min-height: 240px !important; }
+}
+
+/* ============================================================
+   MOBILE (≤ 720px) — single column everywhere
+============================================================ */
+@media (max-width: 720px) {
+  .cat-grid, .law-grid, .hero-grid, .app-body-grid {
+    grid-template-columns: 1fr !important;
+    padding: 16px !important;
+  }
+  .cat-sidebar, .law-sidebar { grid-template-columns: 1fr !important; }
+
+  .cat-title { font-size: 28px !important; }
+  .cat-titlebar-inner { grid-template-columns: 1fr !important; }
+  .cat-stats { justify-content: flex-start !important; gap: 14px !important; }
+  .cat-stat strong { font-size: 26px !important; }
+
+  /* Multi-column card grids → 2 col on mobile */
+  div[style*="grid-template-columns: repeat(4, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  div[style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  /* 2-col split-image layouts → stack */
+  div[style*="grid-template-columns: 1.6fr 1fr"],
+  div[style*="grid-template-columns: 1.55fr 1fr"],
+  div[style*="grid-template-columns: 1.4fr 1fr"],
+  div[style*="grid-template-columns: 1.2fr 1fr"],
+  div[style*="grid-template-columns: 1.1fr 1fr"],
+  div[style*="grid-template-columns: 1.05fr 1fr"] {
+    grid-template-columns: 1fr !important;
+  }
+
+  .cat-featured-img { min-height: 200px !important; }
+  .cat-featured-title { font-size: 20px !important; }
+  .cat-featured-body { padding: 16px !important; }
+
+  .hero-side { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+  .container { padding-left: 14px !important; padding-right: 14px !important; }
+
+  .footer-inner { grid-template-columns: 1fr 1fr !important; gap: 24px !important; }
+  .footer-bottom { flex-direction: column; gap: 8px; text-align: center; }
+
+  .hl-titlebar h1 { font-size: 36px !important; }
+
+  .hl-newsletter,
+  div[style*="background: '#F5F1E8'"] {
+    grid-template-columns: 1fr !important;
+  }
+  .hl-newsletter form { flex-direction: column; gap: 8px !important; }
+
+  .ad-slot { max-width: 100% !important; }
+
+  .utility-bar .utility-right { display: none; }
+
+  div[style*="overflowX: 'auto'"] { -webkit-overflow-scrolling: touch; }
+}
+
+/* ============================================================
+   SMALL PHONE (≤ 480px)
+============================================================ */
+@media (max-width: 480px) {
+  div[style*="grid-template-columns: repeat(4, 1fr)"],
+  div[style*="grid-template-columns: repeat(3, 1fr)"] {
+    grid-template-columns: 1fr !important;
+  }
+  .cat-title { font-size: 24px !important; }
+  .footer-inner { grid-template-columns: 1fr !important; }
+  .hero-side { grid-template-columns: 1fr; }
+}

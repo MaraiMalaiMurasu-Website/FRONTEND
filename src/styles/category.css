@@ -1,0 +1,124 @@
+/* Category Page Styles - Newspaper Aesthetic */
+
+.category-page {
+  animation: fadeIn 0.4s ease-out forwards;
+}
+
+.category-header {
+  margin-bottom: 24px;
+}
+
+.category-title {
+  font-family: var(--serif);
+  font-size: 2.2rem;
+  color: var(--accent);
+  margin: 0;
+  padding-bottom: 8px;
+  border-bottom: 4px solid var(--accent);
+  display: inline-block;
+  font-weight: 800;
+}
+
+.category-breadcrumb {
+  font-family: var(--sans);
+  font-size: 0.85rem;
+  color: var(--text-light);
+  margin-bottom: 16px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.category-breadcrumb a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.category-breadcrumb a:hover {
+  text-decoration: underline;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px 24px;
+  margin-bottom: 48px;
+}
+
+/* Reusing article-card styles from global/homepage, but adapting for category specifically */
+.cat-article-card {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+}
+
+.cat-article-card img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  object-fit: cover;
+  border: 1px solid var(--rule);
+  margin-bottom: 12px;
+  transition: opacity 0.2s;
+}
+
+.cat-article-card:hover img {
+  opacity: 0.9;
+}
+
+.cat-article-kicker {
+  font-family: var(--sans);
+  font-size: 0.75rem;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-weight: bold;
+  margin-bottom: 4px;
+}
+
+.cat-article-title {
+  font-family: var(--serif);
+  font-size: 1.25rem;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  font-weight: bold;
+}
+
+.cat-article-card:hover .cat-article-title {
+  color: var(--accent);
+}
+
+.cat-article-meta {
+  font-family: var(--sans);
+  font-size: 0.8rem;
+  color: var(--text-light);
+  margin-top: auto;
+}
+
+.category-pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 16px;
+  padding-top: 32px;
+  border-top: 1px solid var(--rule);
+  margin-bottom: 32px;
+}
+
+.pagination-btn {
+  font-family: var(--sans);
+  font-size: 0.9rem;
+  padding: 8px 16px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  color: var(--text-dark);
+  cursor: pointer;
+}
+
+.pagination-btn:hover {
+  background: var(--paper-alt);
+}
+
+.pagination-btn.active {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
