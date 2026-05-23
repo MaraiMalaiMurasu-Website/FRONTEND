@@ -455,6 +455,24 @@ export default function CinemaPage() {
           {/* EXTRA SIDEBAR ADS — fill empty space below OTT */}
           <AdSlot network="google" size="300x250" slotId="cinema-sidebar-2" note="Google AdSense · Rectangle" />
           <AdSlot network="meta" size="300x600" slotId="cinema-sidebar-3" note="Meta Audience Network · Half Page" />
+
+          {/* NEW SIDEBAR AD — next to வீடியோ செய்திகள் (Video News) */}
+          <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px' }}>
+            ஆதரவாளர் விளம்பரம் · வீடியோ
+          </div>
+          <AdSlot network="sponsor" size="300x600" slotId="cinema-sidebar-4" note="Half Page · 300 × 600 (next to Video News)" style={{ maxWidth: '100%' }} />
+
+          {/* NEW SIDEBAR AD — next to பாக்ஸ் ஆபிஸ் (Box Office) */}
+          <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px' }}>
+            ஆதரவாளர் விளம்பரம் · பாக்ஸ் ஆபிஸ்
+          </div>
+          <AdSlot network="sponsor" size="300x250" slotId="cinema-sidebar-5" note="Rectangle · 300 × 250 (next to Box Office)" style={{ maxWidth: '100%' }} />
+
+          {/* NEW SIDEBAR AD — next to புகைப்பட தொகுப்பு (Photo Gallery) */}
+          <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginTop: '20px', marginBottom: '8px' }}>
+            ஆதரவாளர் விளம்பரம் · புகைப்படம்
+          </div>
+          <AdSlot network="sponsor" size="300x600" slotId="cinema-sidebar-6" note="Half Page · 300 × 600 (next to Photo Gallery)" style={{ maxWidth: '100%' }} />
         </aside>
       </div>
 

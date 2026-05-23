@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { savePdfBlob, resolvePdfUrl, deletePdf } from '../utils/pdfStorage.js';
 import { isoToInputDatetime } from '../utils/time.js';
+import { saveAdSettings as saveAdSettingsToApi, checkApiHealth, ADS_API_BASE } from '../utils/adsApi.js';
 import logoSrc from '../assets/logo.png';
 
 // SVGs for modern SaaS feel
@@ -18,6 +19,61 @@ const Icons = {
   FileText: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>,
   Ads: () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
 };
+
+// Connection status badge for the Ad Manager — polls the shared Ads API
+// every 15 seconds and shows whether it's reachable. Green = ads sync across
+// all browsers; red = saving locally only.
+function AdsApiStatus() {
+  const [status, setStatus] = useState({ online: null, ts: null });
+  useEffect(() => {
+    let mounted = true;
+    const tick = async () => {
+      const result = await checkApiHealth();
+      if (mounted) setStatus(result);
+    };
+    tick();
+    const id = setInterval(tick, 15000);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
+  const isOnline = status.online === true;
+  const isChecking = status.online === null;
+  const bg = isOnline ? '#ECFDF5' : isChecking ? '#F3F4F6' : '#FEF2F2';
+  const border = isOnline ? '#86EFAC' : isChecking ? '#D1D5DB' : '#FCA5A5';
+  const color = isOnline ? '#065F46' : isChecking ? '#374151' : '#991B1B';
+  const dot = isOnline ? '#10B981' : isChecking ? '#9CA3AF' : '#EF4444';
+  const label = isOnline
+    ? 'Connected — ads sync to every browser & device'
+    : isChecking
+      ? 'Checking connection to Ads API…'
+      : 'Ads API offline — saves are stored in THIS browser only';
+
+  return (
+    <div style={{
+      padding: '12px 16px',
+      marginBottom: '20px',
+      background: bg,
+      border: `1px solid ${border}`,
+      borderRadius: '8px',
+      display: 'flex',
+      alignItems: 'center',
+      gap: '12px',
+      fontSize: '13px',
+      color,
+    }}>
+      <span style={{
+        width: '10px',
+        height: '10px',
+        borderRadius: '50%',
+        background: dot,
+        boxShadow: isOnline ? `0 0 0 3px ${dot}33` : 'none',
+        flexShrink: 0,
+      }} />
+      <strong style={{ fontWeight: 700 }}>{label}</strong>
+      <span style={{ marginLeft: 'auto', fontSize: '11px', color: '#6B7280', fontFamily: 'monospace' }}>{ADS_API_BASE}</span>
+    </div>
+  );
+}
 
 export default function AdminDashboard({ onLogout }) {
   const [activeTab, setActiveTab] = useState('dashboard');
@@ -2626,6 +2682,99 @@ export default function AdminDashboard({ onLogout }) {
                     </div>
                   </div>
 
+                  {/* ===== BOTTOM CTA (உங்கள் வணிகம் — Sponsor Card) ===== */}
+                  <div style={{ background: '#fff', padding: '28px', borderRadius: '16px', border: '1px solid #E5E7EB', marginBottom: '20px' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 6px 0', color: '#111827', fontWeight: '700' }}>🤝 உங்கள் வணிகம் — Bottom Sponsor CTA</h3>
+                    <p style={{ fontSize: '12px', color: '#6B7280', margin: '0 0 16px 0' }}>The bottom sponsor card with image on the left and CTA text on the right (appears below the photo story).</p>
+
+                    {/* Image upload */}
+                    <div style={{ marginBottom: '14px', padding: '12px', background: '#F9FAFB', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: '700', color: '#374151' }}>🖼 Sponsor Image (replaces the "SPONSOR" placeholder)</label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <div style={{
+                          flex: '0 0 100px',
+                          height: '75px',
+                          background: hd.bottomCta?.image ? `url(${hd.bottomCta.image}) center/cover no-repeat` : 'repeating-linear-gradient(45deg, #E5E7EB 0, #E5E7EB 8px, #F3F4F6 8px, #F3F4F6 16px)',
+                          borderRadius: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          fontSize: '10px',
+                          color: '#9CA3AF',
+                          fontFamily: 'monospace'
+                        }}>
+                          {!hd.bottomCta?.image && 'SPONSOR'}
+                        </div>
+                        <div style={{ flex: 1, display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
+                          <label style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                            {hd.bottomCta?.image ? '↻ Replace Image' : '+ Upload Image'}
+                            <input
+                              type="file"
+                              accept="image/*"
+                              style={{ display: 'none' }}
+                              onChange={(e) => {
+                                const file = e.target.files[0];
+                                if (!file) return;
+                                const reader = new FileReader();
+                                reader.onloadend = () => {
+                                  updatePageNested('headlines', 'bottomCta', 'image', reader.result);
+                                };
+                                reader.readAsDataURL(file);
+                              }}
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            onClick={() => openMediaPicker((url) => updatePageNested('headlines', 'bottomCta', 'image', url))}
+                            style={{ padding: '6px 10px', background: '#F3F4F6', border: '1px solid #D1D5DB', color: '#374151', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+                          >
+                            📁 Browse
+                          </button>
+                          {hd.bottomCta?.image && (
+                            <button
+                              type="button"
+                              onClick={() => updatePageNested('headlines', 'bottomCta', 'image', '')}
+                              style={{ padding: '6px 10px', background: '#FEF2F2', border: '1px solid #FECACA', color: '#EF4444', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}
+                            >
+                              Remove
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Sponsored Tag (small red label)</label>
+                      <input type="text" value={hd.bottomCta?.sponsored || ''} onChange={(e) => updatePageNested('headlines', 'bottomCta', 'sponsored', e.target.value)} placeholder="SPONSORED" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                    </div>
+
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Title (Big bold headline)</label>
+                      <input type="text" value={hd.bottomCta?.title || ''} onChange={(e) => updatePageNested('headlines', 'bottomCta', 'title', e.target.value)} placeholder="உங்கள் வணிகம் — மறைமலை முரசு வாசகர்களை சென்றடையுங்கள்" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', fontWeight: '600' }} />
+                    </div>
+
+                    <div style={{ marginBottom: '10px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Subtitle (small descriptive line)</label>
+                      <textarea rows="2" value={hd.bottomCta?.subtitle || ''} onChange={(e) => updatePageNested('headlines', 'bottomCta', 'subtitle', e.target.value)} placeholder="தினசரி 14 லட்சம் வாசகர்கள் · 6 பதிப்புகள் · அனைத்து பகுதிகளிலும்" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', resize: 'vertical' }} />
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                      <div style={{ flex: 1 }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>CTA Text (red link)</label>
+                        <input type="text" value={hd.bottomCta?.cta || ''} onChange={(e) => updatePageNested('headlines', 'bottomCta', 'cta', e.target.value)} placeholder="விளம்பர திட்டங்கள் →" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      </div>
+                      <div style={{ flex: 2 }}>
+                        <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>CTA Link URL</label>
+                        <input type="text" value={hd.bottomCta?.ctaHref || ''} onChange={(e) => updatePageNested('headlines', 'bottomCta', 'ctaHref', e.target.value)} placeholder="mailto:ads@maraimalaimurasu.com or https://..." style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      </div>
+                    </div>
+
+                    <div style={{ marginBottom: '6px' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>Image Placeholder Text (shown only when no image is uploaded)</label>
+                      <input type="text" value={hd.bottomCta?.placeholder || ''} onChange={(e) => updatePageNested('headlines', 'bottomCta', 'placeholder', e.target.value)} placeholder="SPONSOR" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                    </div>
+                  </div>
+
                   {/* ===== HL-SIDEBAR ===== */}
                   <div style={{ background: '#fff', padding: '28px', borderRadius: '16px', border: '1px solid #E5E7EB', marginBottom: '20px' }}>
                     <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', color: '#111827', fontWeight: '700' }}>📌 Right Sidebar</h3>
@@ -2640,25 +2789,36 @@ export default function AdminDashboard({ onLogout }) {
                       </div>
                     </div>
 
-                    {/* Most Read */}
-                    <div style={{ marginBottom: '14px' }}>
-                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '12px', fontWeight: '600', color: '#374151' }}>"Most Read" heading</label>
-                      <input type="text" value={hd.mostReadHead || ''} onChange={(e) => upd('mostReadHead', e.target.value)} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
-                      <div style={{ padding: '10px', background: '#F9FAFB', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                          <label style={{ fontSize: '11px', fontWeight: '700', color: '#374151' }}>📌 Most Read Items</label>
-                          <button type="button" onClick={() => addArr('mostRead', { title: 'புதிய தலைப்பு', link: '' })} style={{ padding: '4px 10px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '10px', fontWeight: '600', cursor: 'pointer' }}>+ Add</button>
+                    {/* Most Read — அதிகம் வாசிக்கப்பட்டவை (sidebar block) */}
+                    <div style={{ marginBottom: '14px', background: '#FEF3F2', padding: '14px', borderRadius: '8px', border: '2px solid #FCA5A5' }}>
+                      <label style={{ display: 'block', marginBottom: '5px', fontSize: '13px', fontWeight: '700', color: '#991B1B' }}>📰 அதிகம் வாசிக்கப்பட்டவை — Section Heading</label>
+                      <input type="text" value={hd.mostReadHead || ''} onChange={(e) => upd('mostReadHead', e.target.value)} placeholder="அதிகம் வாசிக்கப்பட்டவை" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                      <div style={{ padding: '10px', background: '#fff', borderRadius: '6px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <label style={{ fontSize: '12px', fontWeight: '700', color: '#374151' }}>📌 Most Read Items (numbered 1, 2, 3…)</label>
+                          <button type="button" onClick={() => addArr('mostRead', { title: 'புதிய தலைப்பு', meta: 'டெஸ்க்', link: '' })} style={{ padding: '5px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '11px', fontWeight: '600', cursor: 'pointer' }}>+ Add Item</button>
                         </div>
+                        <p style={{ fontSize: '10px', color: '#6B7280', margin: '0 0 8px 0' }}>
+                          💡 Title appears as the headline. Meta is the small text below (e.g. desk name, author). Link is optional — leave blank to disable click.
+                        </p>
                         {(hd.mostRead || []).map((mr, i) => (
-                          <div key={i} style={{ marginBottom: '6px', padding: '6px', background: '#fff', borderRadius: '5px', border: '1px solid #E5E7EB' }}>
-                            <div style={{ display: 'flex', gap: '6px', marginBottom: '4px' }}>
-                              <span style={{ width: '16px', fontSize: '10px', fontWeight: '700', color: 'var(--accent)' }}>{i + 1}</span>
-                              <input type="text" value={mr.title} onChange={(e) => updArr('mostRead', i, 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '11px', padding: '4px 8px', flex: 1 }} />
-                              <button type="button" onClick={() => removeArr('mostRead', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '10px', padding: '3px 7px', borderRadius: '3px' }}>✕</button>
+                          <div key={i} style={{ marginBottom: '8px', padding: '8px', background: '#F9FAFB', borderRadius: '5px', border: '1px solid #E5E7EB' }}>
+                            <div style={{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                              <span style={{ width: '22px', textAlign: 'center', fontSize: '14px', fontWeight: '700', color: 'var(--accent)' }}>{i + 1}</span>
+                              <input type="text" value={mr.title || ''} onChange={(e) => updArr('mostRead', i, 'title', e.target.value)} placeholder="Title (headline shown to readers)" style={{ ...inputStyle, fontSize: '12px', padding: '5px 9px', flex: 1 }} />
+                              <button type="button" onClick={() => removeArr('mostRead', i)} style={{ background: '#FEF2F2', border: '1px solid #FECACA', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: '700' }}>✕</button>
                             </div>
-                            <input type="text" value={mr.link || ''} onChange={(e) => updArr('mostRead', i, 'link', e.target.value)} placeholder="🔗 Link URL" style={{ ...inputStyle, fontSize: '10px', padding: '3px 8px', width: '100%' }} />
+                            <div style={{ display: 'flex', gap: '6px' }}>
+                              <input type="text" value={mr.meta || ''} onChange={(e) => updArr('mostRead', i, 'meta', e.target.value)} placeholder="Meta (e.g. டெல்லி டெஸ்க் · 2 மணி)" style={{ ...inputStyle, fontSize: '11px', padding: '5px 9px', flex: 1 }} />
+                              <input type="text" value={mr.link || ''} onChange={(e) => updArr('mostRead', i, 'link', e.target.value)} placeholder="🔗 Link URL (optional)" style={{ ...inputStyle, fontSize: '11px', padding: '5px 9px', flex: 1 }} />
+                            </div>
                           </div>
                         ))}
+                        {(hd.mostRead || []).length === 0 && (
+                          <div style={{ padding: '20px', textAlign: 'center', color: '#9CA3AF', fontSize: '12px' }}>
+                            No items yet — click "+ Add Item" to create the first Most Read entry.
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -5257,13 +5417,29 @@ export default function AdminDashboard({ onLogout }) {
       case 'ads':
         return (
           <div style={{ maxWidth: '800px', animation: 'fadeIn 0.3s ease-in-out' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
               <div>
                 <h2 style={{ fontSize: '28px', color: '#111827', margin: '0 0 8px 0', fontWeight: '700', letterSpacing: '-0.02em' }}>Ad Manager</h2>
-                <p style={{ color: '#6B7280', margin: 0, fontSize: '15px' }}>Configure your own House Advertisements.</p>
+                <p style={{ color: '#6B7280', margin: 0, fontSize: '15px' }}>Configure your own House Advertisements. Changes sync to every browser via the shared Ads API.</p>
               </div>
-              <button style={{ padding: '10px 24px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 6px rgba(200, 16, 46, 0.2)' }} onClick={() => { localStorage.setItem('adSettings', JSON.stringify(adSettings)); notifyChange('adSettings'); alert('Ad Settings Saved Successfully!'); }}>Save Ad Settings</button>
+              <button
+                style={{ padding: '10px 24px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '14px', boxShadow: '0 4px 6px rgba(200, 16, 46, 0.2)' }}
+                onClick={async () => {
+                  const result = await saveAdSettingsToApi(adSettings);
+                  if (result.ok) {
+                    alert('✅ Ad Settings Saved!\n\nPushed to the shared Ads API — every browser and device will see the changes within 10 seconds.');
+                  } else {
+                    alert('⚠️ Saved locally only.\n\nThe Ads API server is not reachable, so the changes are stored in this browser only. Other browsers will not see them until the server comes back online.\n\nStart the server with:\ncd server\nnpm start');
+                  }
+                }}
+              >
+                Save Ad Settings
+              </button>
             </div>
+
+            {/* Connection status badge — shows whether the shared Ads API is reachable */}
+            <AdsApiStatus />
+
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
               
@@ -5343,31 +5519,41 @@ export default function AdminDashboard({ onLogout }) {
                   // All known ad slots in the site
                   const SLOTS = [
                     { id: 'header-right-sq',         size: '250x250', label: 'Header Right Square',                page: 'Every page (header)' },
-                    { id: 'home-leaderboard-1',      size: '728x90',  label: 'Home — Top Stories Leaderboard',    page: 'Homepage' },
-                    { id: 'home-billboard-samsung',  size: '728x250', label: 'Home — Sponsor Billboard (Samsung)', page: 'Homepage' },
+                    { id: 'home-leaderboard-1',      size: '970x350', label: 'Home — Top Stories Billboard (Tall)', page: 'Homepage' },
+                    { id: 'home-billboard-samsung',  size: '970x350', label: 'Home — Sponsor Billboard (Tall)',   page: 'Homepage' },
+                    { id: 'home-bottom-billboard',   size: '970x350', label: 'Home — Bottom Billboard (after State + National)', page: 'Homepage' },
                     { id: 'home-infeed-meta',        size: '728x120', label: 'Home — Meta In-Feed Strip',          page: 'Homepage' },
-                    { id: 'headlines-leaderboard',   size: '970x160', label: 'Headlines — Leaderboard (red bord)', page: '/headlines' },
-                    { id: 'headlines-mid-ad',        size: '970x160', label: 'Headlines — Mid Article Ad',         page: '/headlines' },
-                    { id: 'headlines-inline-2',      size: '970x90',  label: 'Headlines — Inline 2 (after cards)', page: '/headlines' },
-                    { id: 'headlines-inline-3',      size: '970x90',  label: 'Headlines — Inline 3 (mid feed)',    page: '/headlines' },
+                    { id: 'home-hero-sidebar-1',     size: '300x250', label: 'Home — Hero Sidebar (Rectangle)',    page: 'Homepage' },
+                    { id: 'headlines-leaderboard',   size: '970x350', label: 'Headlines — Leaderboard (Tall Billboard)', page: '/headlines' },
+                    { id: 'headlines-mid-ad',        size: '970x350', label: 'Headlines — Mid Article (Tall Billboard)', page: '/headlines' },
+                    { id: 'headlines-inline-2',      size: '970x350', label: 'Headlines — Inline 2 (Tall Billboard)',    page: '/headlines' },
+                    { id: 'headlines-inline-3',      size: '970x350', label: 'Headlines — Inline 3 (Tall Billboard)',    page: '/headlines' },
                     { id: 'headlines-sidebar-1',     size: '300x600', label: 'Headlines — Sidebar Top (Half Page)', page: '/headlines' },
                     { id: 'headlines-sidebar-2',     size: '300x250', label: 'Headlines — Sidebar Mid (Rectangle)', page: '/headlines' },
                     { id: 'headlines-sidebar-3',     size: '300x250', label: 'Headlines — Sidebar Bottom (Rect.)', page: '/headlines' },
+                    { id: 'headlines-sidebar-4',     size: '300x600', label: 'Headlines — Sidebar #4 (Half Page Tall)', page: '/headlines' },
+                    { id: 'headlines-sidebar-5',     size: '300x600', label: 'Headlines — Sidebar #5 (Half Page Tall)', page: '/headlines' },
+                    { id: 'headlines-sidebar-6',     size: '300x250', label: 'Headlines — Sidebar #6 Bottom Anchor (Rect.)', page: '/headlines' },
+                    { id: 'headlines-photo-story-side', size: '300x900', label: 'Headlines — Photo Story Right (Tall Skyscraper)', page: '/headlines' },
                     { id: 'astro-sidebar',           size: '300x600', label: 'Astrology — Sidebar Half-Page',      page: '/astrology' },
                     { id: 'astro-sidebar-2',         size: '300x250', label: 'Astrology — Sidebar Mid (Rectangle)', page: '/astrology' },
                     { id: 'astro-sidebar-3',         size: '300x250', label: 'Astrology — Sidebar Bottom (Rect.)', page: '/astrology' },
-                    { id: 'astro-inline-1',          size: '970x90',  label: 'Astrology — Inline 1 (after Panchangam)', page: '/astrology' },
-                    { id: 'astro-inline-2',          size: '970x90',  label: 'Astrology — Inline 2 (after Rasi)', page: '/astrology' },
+                    { id: 'astro-inline-1',          size: '970x350', label: 'Astrology — Inline 1 (Tall Billboard, after Panchangam)', page: '/astrology' },
+                    { id: 'astro-inline-2',          size: '970x350', label: 'Astrology — Inline 2 (Tall Billboard, after Rasi)', page: '/astrology' },
                     { id: 'law-mid-ad',              size: '970x250', label: 'Law — Mid-Article Billboard',        page: '/law' },
                     { id: 'law-sidebar-1',           size: '300x600', label: 'Law — Sidebar Top (Half Page)',      page: '/law' },
                     { id: 'law-sidebar-2',           size: '300x250', label: 'Law — Sidebar Mid (Rectangle)',      page: '/law' },
                     { id: 'law-sidebar-3',           size: '300x600', label: 'Law — Sidebar Bottom (Half Page)',   page: '/law' },
+                    { id: 'law-sidebar-4',           size: '300x250', label: 'Law — Sidebar #4 (compact, next to Live News)', page: '/law' },
                     { id: 'cinema-mid-ad',           size: '970x90',  label: 'Cinema — Mid Leaderboard',           page: '/cinema' },
                     { id: 'cinema-sidebar',          size: '300x600', label: 'Cinema — Sidebar Top (Half Page)',   page: '/cinema' },
                     { id: 'cinema-sidebar-2',        size: '300x250', label: 'Cinema — Sidebar Mid (Rectangle)',   page: '/cinema' },
                     { id: 'cinema-sidebar-3',        size: '300x600', label: 'Cinema — Sidebar Bottom (Half Page)',page: '/cinema' },
                     { id: 'cinema-inline-1',         size: '970x90',  label: 'Cinema — Inline 1 (after Popular)',  page: '/cinema' },
                     { id: 'cinema-inline-2',         size: '970x90',  label: 'Cinema — Inline 2 (after Box Office)', page: '/cinema' },
+                    { id: 'cinema-sidebar-4',        size: '300x600', label: 'Cinema — Sidebar #4 (next to Video News)', page: '/cinema' },
+                    { id: 'cinema-sidebar-5',        size: '300x250', label: 'Cinema — Sidebar #5 (next to Box Office)', page: '/cinema' },
+                    { id: 'cinema-sidebar-6',        size: '300x600', label: 'Cinema — Sidebar #6 (next to Photo Gallery)', page: '/cinema' },
                     { id: 'sports-mid-ad',           size: '970x90',  label: 'Sports — Mid Leaderboard',           page: '/sports' },
                     { id: 'sports-inline-2',         size: '970x90',  label: 'Sports — Inline 2 (after Star Players)', page: '/sports' },
                     { id: 'sports-inline-3',         size: '970x90',  label: 'Sports — Inline 3 (after Photos)',   page: '/sports' },
@@ -5400,21 +5586,25 @@ export default function AdminDashboard({ onLogout }) {
                       }
                     };
                     setAdSettings(updated);
-                    // Auto-save so frontend picks up immediately
-                    try {
-                      localStorage.setItem('adSettings', JSON.stringify(updated));
-                      notifyChange('adSettings');
-                    } catch (e) { /* ignore */ }
+                    // Push to shared backend so every browser/device sees the
+                    // change. saveAdSettingsToApi also writes the local cache
+                    // and fires storage events for in-page React updates.
+                    saveAdSettingsToApi(updated).then(result => {
+                      if (!result.ok) {
+                        console.warn('Slot update saved locally only — backend unreachable');
+                      }
+                    });
                   };
                   const removeSlot = (slotId) => {
                     const newHouseAds = { ...houseAds };
                     delete newHouseAds[slotId];
                     const updated = { ...adSettings, houseAds: newHouseAds };
                     setAdSettings(updated);
-                    try {
-                      localStorage.setItem('adSettings', JSON.stringify(updated));
-                      notifyChange('adSettings');
-                    } catch (e) { /* ignore */ }
+                    saveAdSettingsToApi(updated).then(result => {
+                      if (!result.ok) {
+                        console.warn('Slot removal saved locally only — backend unreachable');
+                      }
+                    });
                   };
 
                   return (
@@ -5422,32 +5612,60 @@ export default function AdminDashboard({ onLogout }) {
                       {SLOTS.map(slot => {
                         const config = houseAds[slot.id] || {};
                         const hasImage = !!config.image;
+                        const hasVideo = !!config.video;
+                        const hasContent = hasImage || hasVideo;
+                        const fit = config.fit === 'contain' ? 'contain'
+                                   : config.fit === 'natural' ? 'natural'
+                                   : 'cover';
+                        const bg = config.bg || '#000000';
                         return (
-                          <div key={slot.id} style={{ padding: '14px', background: hasImage ? '#F0FDF4' : '#F9FAFB', borderRadius: '8px', border: `1px solid ${hasImage ? '#86EFAC' : '#E5E7EB'}` }}>
+                          <div key={slot.id} style={{ padding: '14px', background: hasContent ? '#F0FDF4' : '#F9FAFB', borderRadius: '8px', border: `1px solid ${hasContent ? '#86EFAC' : '#E5E7EB'}` }}>
                             <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px' }}>
-                              {/* Image preview */}
-                              <div style={{ flex: '0 0 100px', height: '60px', background: hasImage ? `url(${config.image}) center/cover no-repeat` : 'repeating-linear-gradient(45deg, #E5E7EB 0, #E5E7EB 8px, #F3F4F6 8px, #F3F4F6 16px)', borderRadius: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', color: '#9CA3AF', fontFamily: 'monospace' }}>
-                                {!hasImage && slot.size}
+                              {/* Preview — shows image or video icon */}
+                              <div style={{
+                                flex: '0 0 100px',
+                                height: '60px',
+                                background: hasImage
+                                  ? `${bg} url(${config.image}) center/${fit} no-repeat`
+                                  : hasVideo
+                                    ? '#111'
+                                    : 'repeating-linear-gradient(45deg, #E5E7EB 0, #E5E7EB 8px, #F3F4F6 8px, #F3F4F6 16px)',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '10px',
+                                color: hasVideo ? '#fff' : '#9CA3AF',
+                                fontFamily: 'monospace',
+                                position: 'relative'
+                              }}>
+                                {hasVideo && !hasImage && (
+                                  <span style={{ fontSize: '22px' }}>▶</span>
+                                )}
+                                {!hasContent && slot.size}
                               </div>
 
                               {/* Slot info */}
                               <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
                                   <span style={{ fontSize: '13px', fontWeight: '700', color: '#111827' }}>{slot.label}</span>
                                   <span style={{ fontSize: '10px', padding: '2px 6px', background: '#E0E7FF', color: '#3730A3', borderRadius: '3px', fontFamily: 'monospace', fontWeight: '600' }}>{slot.size}</span>
                                   <span style={{ fontSize: '11px', color: '#6B7280' }}>{slot.page}</span>
-                                  {hasImage && <span style={{ fontSize: '10px', padding: '2px 6px', background: '#059669', color: '#fff', borderRadius: '3px', fontWeight: '700' }}>✓ ACTIVE</span>}
+                                  {hasImage && <span style={{ fontSize: '10px', padding: '2px 6px', background: '#059669', color: '#fff', borderRadius: '3px', fontWeight: '700' }}>✓ IMAGE</span>}
+                                  {hasVideo && <span style={{ fontSize: '10px', padding: '2px 6px', background: '#7C3AED', color: '#fff', borderRadius: '3px', fontWeight: '700' }}>▶ VIDEO</span>}
                                 </div>
-                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+
+                                {/* Row 1 — link URL + image upload + media picker */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
                                   <input
                                     type="text"
                                     placeholder="Target link URL (https://...)"
                                     value={config.link || ''}
                                     onChange={(e) => updateSlot(slot.id, 'link', e.target.value)}
-                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '200px' }}
                                   />
                                   <label style={{ padding: '5px 10px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
-                                    {hasImage ? '↻ Replace' : '+ Upload Image'}
+                                    {hasImage ? '↻ Replace Image' : '+ Upload Image'}
                                     <input
                                       type="file"
                                       accept="image/*"
@@ -5467,10 +5685,39 @@ export default function AdminDashboard({ onLogout }) {
                                     type="button"
                                     onClick={() => openMediaPicker((url) => updateSlot(slot.id, 'image', url))}
                                     style={{ padding: '5px 8px', background: '#F3F4F6', border: '1px solid #D1D5DB', color: '#374151', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+                                    title="Pick from media library"
                                   >
                                     📁
                                   </button>
-                                  {hasImage && (
+                                </div>
+
+                                {/* Row 2 — video URL + fit dropdown + bg color + remove */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <input
+                                    type="text"
+                                    placeholder="▶ Video URL — YouTube / Vimeo / .mp4 (optional)"
+                                    value={config.video || ''}
+                                    onChange={(e) => updateSlot(slot.id, 'video', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '200px' }}
+                                  />
+                                  <select
+                                    value={fit}
+                                    onChange={(e) => updateSlot(slot.id, 'fit', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', width: '130px' }}
+                                    title="Cover crops to fill • Contain letterboxes • Natural resizes the slot to match the image (full image, no bars)"
+                                  >
+                                    <option value="cover">Fit: Cover</option>
+                                    <option value="contain">Fit: Contain</option>
+                                    <option value="natural">Fit: Natural ★</option>
+                                  </select>
+                                  <input
+                                    type="color"
+                                    value={bg}
+                                    onChange={(e) => updateSlot(slot.id, 'bg', e.target.value)}
+                                    style={{ width: '34px', height: '28px', border: '1px solid #D1D5DB', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+                                    title="Background colour (used when Fit=Contain or for video letterbox)"
+                                  />
+                                  {hasContent && (
                                     <button
                                       type="button"
                                       onClick={() => removeSlot(slot.id)}
@@ -5485,9 +5732,17 @@ export default function AdminDashboard({ onLogout }) {
                           </div>
                         );
                       })}
-                      <p style={{ fontSize: '11px', color: '#6B7280', margin: '8px 0 0 0', padding: '10px', background: '#FAFAF7', borderRadius: '6px' }}>
-                        💡 <strong>Tip:</strong> Upload images that match the slot's aspect ratio (size shown next to each slot label) for the best fit. Per-slot ads override the legacy single-ad upload above.
-                      </p>
+                      <div style={{ fontSize: '12px', color: '#374151', margin: '8px 0 0 0', padding: '14px', background: '#FAFAF7', borderRadius: '6px', lineHeight: 1.6 }}>
+                        💡 <strong>How any-size content fills the slot:</strong>
+                        <ul style={{ margin: '6px 0 6px 18px', padding: 0 }}>
+                          <li><strong>Fit: Cover</strong> — crops the image to fill the entire box. No bars, but edges of tall/portrait images may be cropped off.</li>
+                          <li><strong>Fit: Contain</strong> — shows the entire image with letterbox bars on the empty sides (use the colour picker to match your brand).</li>
+                          <li><strong>Fit: Natural ★</strong> — <em>recommended for posters &amp; flyers!</em> The slot itself resizes to match the image's aspect ratio. <strong>No cropping AND no bars</strong> — the full poster shows in its original shape (portrait posters become tall slots, landscape posters become wide slots).</li>
+                          <li><strong>Video URL</strong> — paste a YouTube / Vimeo / .mp4 URL. Plays muted + looped + autoplay. Use direct .mp4 files for cleanest results.</li>
+                          <li><strong>Both filled?</strong> Video takes priority over image (so you can keep an image as a fallback poster).</li>
+                          <li><strong>Background colour</strong> — used to letterbox <em>Contain</em>-mode images and for video bars (defaults to black).</li>
+                        </ul>
+                      </div>
                     </div>
                   );
                 })()}

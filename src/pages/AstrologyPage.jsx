@@ -180,7 +180,7 @@ export default function AstrologyPage() {
               <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
                 விளம்பரம் · SPONSORED
               </div>
-              <AdSlot network="sponsor" size="970x90" slotId="astro-inline-1" note="In-feed banner · 970 × 90" style={{ maxWidth: '100%' }} />
+              <AdSlot network="sponsor" size="970x350" slotId="astro-inline-1" note="In-feed Billboard · 970 × 350" style={{ maxWidth: '100%' }} />
             </div>
 
             {/* Rasi Palan Grid — admin-editable, with optional PDF per rasi */}
@@ -211,7 +211,7 @@ export default function AstrologyPage() {
               <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
                 விளம்பரம் · SPONSORED
               </div>
-              <AdSlot network="sponsor" size="970x90" slotId="astro-inline-2" note="In-feed banner · 970 × 90" style={{ maxWidth: '100%' }} />
+              <AdSlot network="sponsor" size="970x350" slotId="astro-inline-2" note="In-feed Billboard · 970 × 350" style={{ maxWidth: '100%' }} />
             </div>
 
             {/* Spiritual Articles */}

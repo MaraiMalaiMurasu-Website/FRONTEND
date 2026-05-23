@@ -8,7 +8,7 @@ export default function AdminLogin({ onLogin }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (username === 'admin' && password === 'admin123') {
+    if (username === 'maraimalai' && password === 'Admin@2026') {
       onLogin();
     } else {
       setError('Invalid username or password');
@@ -43,7 +43,7 @@ export default function AdminLogin({ onLogin }) {
                 )}
               </button>
             </div>
-            <div style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>Hint: username: admin | password: admin123</div>
+            <div style={{ fontSize: '12px', color: '#888', marginTop: '8px' }}>Hint: username: maraimalai | password: Admin@2026</div>
           </div>
           <button type="submit" style={{ width: '100%', padding: '14px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '16px', cursor: 'pointer' }}>
             Secure Login

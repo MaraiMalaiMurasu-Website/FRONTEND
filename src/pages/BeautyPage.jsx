@@ -99,6 +99,18 @@ export default function BeautyPage() {
   const stripe = 'repeating-linear-gradient(45deg, #FCE7E0 0, #FCE7E0 12px, #FDEAE0 12px, #FDEAE0 24px)';
   const resolveLink = (item, fallback = '/article') => (item && item.link && String(item.link).trim()) ? String(item.link).trim() : fallback;
 
+  // Card wrapper — renders <a> ONLY when the item has an explicit link set
+  // in the admin. Otherwise renders a non-clickable <div> so the card does
+  // not auto-navigate to /article. Used for Featured / News / Skincare /
+  // Haircare / Makeup sections per request.
+  const Card = ({ link, style, children, ...rest }) => {
+    const url = link && String(link).trim();
+    if (url) {
+      return <a href={url} style={style} {...rest}>{children}</a>;
+    }
+    return <div style={{ ...style, cursor: 'default' }} {...rest}>{children}</div>;
+  };
+
   const [customBeauty, setCustomBeauty] = useState([]);
   useEffect(() => {
     const load = () => {
@@ -170,7 +182,7 @@ export default function BeautyPage() {
         <div className="cat-main">
           {/* FEATURED */}
           {isOn('featured') && (
-            <a href={resolveLink(featured)} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 0, textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden', marginBottom: '24px' }}>
+            <Card link={featured.link} style={{ display: 'grid', gridTemplateColumns: '1.1fr 1fr', gap: 0, textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden', marginBottom: '24px' }}>
               <div style={{ minHeight: '320px', background: featured.bgImage ? `url(${featured.bgImage}) center/cover no-repeat` : (featured.img ? `url(${featured.img}) center/cover no-repeat` : stripe), display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '13px', color: 'var(--ink-3)', position: 'relative' }}>
                 {!featured.bgImage && !featured.img && <span>{featured.placeholder}</span>}
                 {featured.cat && (
@@ -185,7 +197,7 @@ export default function BeautyPage() {
                 <p style={{ margin: '0 0 12px 0', fontSize: '14px', lineHeight: 1.55, color: 'var(--ink-2)' }}>{featured.excerpt}</p>
                 <div style={{ fontSize: '11px', color: 'var(--ink-3)' }}>{featured.meta}</div>
               </div>
-            </a>
+            </Card>
           )}
 
           {/* MID AD */}
@@ -201,7 +213,7 @@ export default function BeautyPage() {
               <SectionHead icon="🌿" title={pc.newsHead} more={pc.newsMore} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '36px' }}>
                 {newsItems.map((n, i) => (
-                  <a key={i} href={resolveLink(n)} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden', padding: '14px' }}>
+                  <Card key={i} link={n.link} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden', padding: '14px' }}>
                     <div style={{ width: '100%', aspectRatio: '4/3', background: n.img ? `url(${n.img}) center/cover no-repeat` : stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '6px', marginBottom: '10px', position: 'relative' }}>
                       {!n.img && (
                         <span style={{ fontSize: '24px' }}>{n.icon || '🌸'}</span>
@@ -210,7 +222,7 @@ export default function BeautyPage() {
                     <div style={{ fontSize: '10px', color: '#F472B6', fontWeight: 700, letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '5px' }}>{n.cat}</div>
                     <h3 style={{ margin: '0 0 6px 0', fontFamily: 'var(--serif)', fontSize: '13px', lineHeight: 1.4, color: 'var(--ink)', fontWeight: 700 }}>{n.title}</h3>
                     <div style={{ fontSize: '10px', color: 'var(--ink-3)' }}>{n.meta}</div>
-                  </a>
+                  </Card>
                 ))}
               </div>
             </>
@@ -222,7 +234,7 @@ export default function BeautyPage() {
               <SectionHead icon="🌸" title={pc.skincareHead} more={pc.skincareMore} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '36px' }}>
                 {skincareItems.map((s, i) => (
-                  <a key={i} href={resolveLink(s)} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden' }}>
+                  <Card key={i} link={s.link} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', aspectRatio: '4/3', background: s.img ? `url(${s.img}) center/cover no-repeat` : stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
                       {!s.img && <span>{s.placeholder}</span>}
                     </div>
@@ -230,7 +242,7 @@ export default function BeautyPage() {
                       <h3 style={{ margin: '0 0 6px 0', fontFamily: 'var(--serif)', fontSize: '14px', lineHeight: 1.4, color: 'var(--ink)', fontWeight: 700 }}>{s.title}</h3>
                       <div style={{ fontSize: '11px', color: 'var(--ink-3)' }}>{s.meta}</div>
                     </div>
-                  </a>
+                  </Card>
                 ))}
               </div>
               {/* Skincare gradient color band */}
@@ -249,7 +261,7 @@ export default function BeautyPage() {
               <SectionHead icon="🌷" title={pc.haircareHead} more={pc.haircareMore} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '14px', marginBottom: '36px' }}>
                 {haircareItems.map((h, i) => (
-                  <a key={i} href={resolveLink(h)} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden' }}>
+                  <Card key={i} link={h.link} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', aspectRatio: '4/3', background: h.img ? `url(${h.img}) center/cover no-repeat` : stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)' }}>
                       {!h.img && <span>{h.placeholder}</span>}
                     </div>
@@ -257,7 +269,7 @@ export default function BeautyPage() {
                       <h3 style={{ margin: '0 0 6px 0', fontFamily: 'var(--serif)', fontSize: '14px', lineHeight: 1.4, color: 'var(--ink)', fontWeight: 700 }}>{h.title}</h3>
                       <div style={{ fontSize: '11px', color: 'var(--ink-3)' }}>{h.meta}</div>
                     </div>
-                  </a>
+                  </Card>
                 ))}
               </div>
             </>
@@ -269,7 +281,7 @@ export default function BeautyPage() {
               <SectionHead icon="💄" title={pc.makeupHead} more={pc.makeupMore} />
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '14px', marginBottom: '36px' }}>
                 {makeupItems.map((m, i) => (
-                  <a key={i} href={resolveLink(m)} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden' }}>
+                  <Card key={i} link={m.link} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', background: '#fff', border: '1px solid #FBCFE8', borderRadius: '10px', overflow: 'hidden' }}>
                     <div style={{ width: '100%', aspectRatio: '4/3', background: m.img ? `url(${m.img}) center/cover no-repeat` : stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '11px', color: 'var(--ink-3)' }}>
                       {!m.img && <span>{m.placeholder}</span>}
                     </div>
@@ -277,7 +289,7 @@ export default function BeautyPage() {
                       <h3 style={{ margin: '0 0 5px 0', fontFamily: 'var(--serif)', fontSize: '13px', lineHeight: 1.4, color: 'var(--ink)', fontWeight: 700 }}>{m.title}</h3>
                       <div style={{ fontSize: '10px', color: 'var(--ink-3)' }}>{m.meta}</div>
                     </div>
-                  </a>
+                  </Card>
                 ))}
               </div>
             </>

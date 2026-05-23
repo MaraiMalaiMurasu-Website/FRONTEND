@@ -226,6 +226,12 @@ export default function LawPage() {
 
           {/* TERTIARY SIDEBAR AD — bottom sticky ad */}
           <AdSlot network="meta" size="300x600" slotId="law-sidebar-3" note="Meta Audience Network · Half Page" style={{ maxWidth: '100%' }} />
+
+          {/* NEW AD #4 — beside நேரடி சட்ட செய்திகள் section (compact square — matches header ad size) */}
+          <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px', marginTop: '20px' }}>
+            ஆதரவாளர் விளம்பரம்
+          </div>
+          <AdSlot network="sponsor" size="300x250" slotId="law-sidebar-4" note="Rectangle · 300 × 250" style={{ maxWidth: '100%' }} />
         </aside>
       </div>
     </div>

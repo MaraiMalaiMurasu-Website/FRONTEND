@@ -1,0 +1,73 @@
+# ─────────────────────────────────────────────────────────────────────────
+# Maraimalai Murasu — Apache config for Hostinger (or any Apache host)
+# ─────────────────────────────────────────────────────────────────────────
+# This file ships with the React build (vite copies /public → /dist). Upload
+# it to public_html/ alongside index.html.
+
+# 1. Single Page Application routing
+# Any URL that isn't a real file gets rewritten to index.html so React Router
+# can handle it client-side. Without this, /admin /headlines /law etc. 404.
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+
+  # Don't rewrite real files or directories
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule ^ - [L]
+
+  # Don't rewrite the /api/ path (it goes to the Node.js backend)
+  RewriteRule ^api/ - [L]
+
+  # Everything else → index.html
+  RewriteRule . /index.html [L]
+</IfModule>
+
+# 2. Long-cache hashed assets, short-cache HTML
+# Vite produces filenames like main.a1b2c3d4.js, so they can be cached forever.
+# index.html must NOT be long-cached or browsers won't see new deploys.
+<IfModule mod_expires.c>
+  ExpiresActive On
+
+  # Cache static assets for 1 year
+  ExpiresByType image/jpeg            "access plus 1 year"
+  ExpiresByType image/png             "access plus 1 year"
+  ExpiresByType image/webp            "access plus 1 year"
+  ExpiresByType image/svg+xml         "access plus 1 year"
+  ExpiresByType image/x-icon          "access plus 1 year"
+  ExpiresByType application/font-woff "access plus 1 year"
+  ExpiresByType font/woff2            "access plus 1 year"
+  ExpiresByType text/css              "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType application/json      "access plus 0 seconds"
+
+  # Don't cache HTML so deploys are picked up immediately
+  ExpiresByType text/html             "access plus 0 seconds"
+</IfModule>
+
+# 3. Compress text responses
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/javascript application/javascript application/json image/svg+xml
+</IfModule>
+
+# 4. Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  # Long-cache assets that have hashes in the filename
+  <FilesMatch "\.(js|css|woff2|woff|jpg|jpeg|png|webp|svg|ico)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  # No-cache HTML
+  <FilesMatch "\.(html)$">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </FilesMatch>
+</IfModule>
+
+# 5. Force HTTPS (recommended once SSL is set up in Hostinger)
+# Uncomment after SSL is active on your domain:
+# <IfModule mod_rewrite.c>
+#   RewriteCond %{HTTPS} off
+#   RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+# </IfModule>

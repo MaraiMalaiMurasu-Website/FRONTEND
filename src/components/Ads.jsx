@@ -1,7 +1,55 @@
 import React, { useState, useEffect } from 'react';
+import { getYouTubeId } from './VideoPlayer.jsx';
 
 // Ad slot system — reusable placeholders for Google Ads, Meta Audience Network,
 // and direct sponsor slots.
+
+// Detect if a URL is a YouTube link (or just a video ID) — used by ad slots
+// to decide whether to render a <video>/iframe or an <img>.
+function detectVideoKind(url) {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+  // YouTube
+  if (getYouTubeId(trimmed)) return 'youtube';
+  // Direct mp4/webm/ogg/mov video
+  if (/\.(mp4|webm|ogg|ogv|mov|m4v)(\?.*)?$/i.test(trimmed)) return 'video';
+  // Vimeo
+  if (/vimeo\.com\/(\d+)/.test(trimmed)) return 'vimeo';
+  return null;
+}
+
+// Build a muted-autoplay-loop YouTube embed URL for ad slots
+function buildYouTubeAdEmbed(url) {
+  const id = getYouTubeId(url);
+  if (!id) return '';
+  const params = new URLSearchParams({
+    autoplay: '1',
+    mute: '1',
+    loop: '1',
+    controls: '0',
+    modestbranding: '1',
+    rel: '0',
+    showinfo: '0',
+    iv_load_policy: '3',
+    playsinline: '1',
+    disablekb: '1',
+    fs: '0',
+    cc_load_policy: '0',
+    enablejsapi: '0',
+    color: 'white',
+    playlist: id, // required for loop=1 on single video
+  });
+  return `https://www.youtube.com/embed/${id}?${params.toString()}`;
+}
+
+// Build a muted-autoplay-loop Vimeo embed URL for ad slots
+function buildVimeoAdEmbed(url) {
+  const m = url && url.match(/vimeo\.com\/(\d+)/);
+  if (!m) return '';
+  const id = m[1];
+  return `https://player.vimeo.com/video/${id}?autoplay=1&muted=1&loop=1&controls=0&background=1`;
+}
 
 const AdLabel = ({ network, copy }) => {
   const tag = {
@@ -36,28 +84,63 @@ function cornerFor(network) {
 }
 
 // Generic responsive slot — pass size as "728x90", "300x250", "300x600", "970x250", "320x100"
+// Supports per-slot overrides via adSettings.houseAds[slotId]:
+//   { image: dataURL | URL,   // any-size image, scaled to fill slot
+//     video: 'https://youtu.be/...' | 'https://example.com/file.mp4',  // YouTube/Vimeo/MP4
+//     fit: 'cover' | 'contain' | 'natural',  // how the content fills the slot
+//        - cover (default): crops to fill, no bars but may lose edges
+//        - contain: shows full content with bars on the empty sides
+//        - natural: slot resizes to match the content's aspect ratio (NO crop + NO bars)
+//     bg: '#000',  // optional letterbox background colour when fit=contain
+//     link: 'https://...', label: 'My Ad' }
 export function AdSlot({ network = "google", size = "728x90", slotId = "", note = "", className = "", style = {}, creative = null, href = "#" }) {
   const [w, h] = size.split("x").map(Number);
   const [settings, setSettings] = useState(null);
+  // naturalAspect tracks the uploaded image's intrinsic width/height ratio.
+  // It is set on <img onLoad> and used when fit === 'natural' to resize the
+  // slot so the image fits perfectly (no crop, no bars).
+  const [naturalAspect, setNaturalAspect] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('adSettings');
     if (saved) setSettings(JSON.parse(saved));
+    // Reload when adSettings is updated elsewhere
+    const onStorage = (e) => {
+      if (!e || e.key === 'adSettings') {
+        const s = localStorage.getItem('adSettings');
+        if (s) { try { setSettings(JSON.parse(s)); } catch (err) { /* ignore */ } }
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    window.addEventListener('adSettingsChanged', onStorage);
+    return () => {
+      window.removeEventListener('storage', onStorage);
+      window.removeEventListener('adSettingsChanged', onStorage);
+    };
   }, []);
 
   let displayNetwork = network;
   let displayCreative = creative;
+  let displayVideo = null;
+  let displayFit = 'cover';
+  let displayBg = '#000';
   let displayHref = href;
   let displaySlotId = slotId;
 
   if (settings) {
-    // Priority 1: Per-slot override — each ad slot can have its own image
-    // uploaded via Admin → Ad Manager → Per-slot ads list. This takes
+    // Priority 1: Per-slot override — each ad slot can have its own image OR
+    // video uploaded via Admin → Ad Manager → Per-slot ads list. This takes
     // precedence over the legacy single houseImageUrl override.
     const perSlot = settings.houseAds && settings.houseAds[slotId];
-    if (perSlot && perSlot.image) {
+    if (perSlot && (perSlot.image || perSlot.video)) {
       displayNetwork = "house";
-      displayCreative = perSlot.image;
+      displayCreative = perSlot.image || null;
+      displayVideo = perSlot.video || null;
+      // fit: cover | contain | natural — default is cover for backward compat
+      if (perSlot.fit === 'contain') displayFit = 'contain';
+      else if (perSlot.fit === 'natural') displayFit = 'natural';
+      else displayFit = 'cover';
+      displayBg = perSlot.bg || '#000';
       displayHref = perSlot.link || "#";
       displaySlotId = perSlot.label || "My Active Ad";
     }
@@ -78,17 +161,175 @@ export function AdSlot({ network = "google", size = "728x90", slotId = "", note 
   // This lets us render a 970x250 ad inside a 1280px container, stretching
   // the image to fill the whole width while keeping the aspect ratio.
   const callerMaxWidth = style && (style.maxWidth || style.width);
-  const effectiveStyle = {
-    display: 'block',
-    width: '100%',
-    maxWidth: callerMaxWidth || `${w}px`,
-    height: callerMaxWidth ? 'auto' : `${h}px`,
-    aspectRatio: callerMaxWidth ? `${w}/${h}` : undefined,
-    margin: '0 auto',
-    ...style,
-  };
+  const hasContent = !!(displayCreative || displayVideo);
 
+  // ---------- NATURAL FIT MODE ----------
+  // When fit='natural' AND we have the image's intrinsic aspect ratio,
+  // resize the slot to match the image so it displays perfectly (no crop,
+  // no bars). Falls back to the configured size until the image loads.
+  const useNatural = displayFit === 'natural' && naturalAspect && displayCreative;
+  const effectiveStyle = useNatural
+    ? {
+        display: 'block',
+        width: '100%',
+        maxWidth: callerMaxWidth || `${w}px`,
+        height: 'auto',
+        aspectRatio: `${naturalAspect}`,
+        margin: '0 auto',
+        position: 'relative',
+        overflow: 'hidden',
+        background: displayBg,
+        ...style,
+      }
+    : {
+        display: 'block',
+        width: '100%',
+        maxWidth: callerMaxWidth || `${w}px`,
+        height: callerMaxWidth ? 'auto' : `${h}px`,
+        aspectRatio: callerMaxWidth ? `${w}/${h}` : undefined,
+        margin: '0 auto',
+        position: 'relative',
+        // Only override CSS pattern background when we have an image/video to render.
+        // For filled slots, use the user-chosen letterbox colour so any-size content
+        // fits cleanly into the slot regardless of source aspect ratio.
+        ...(hasContent ? { overflow: 'hidden', background: displayBg } : null),
+        ...style,
+      };
+
+  // ---------- VIDEO AD ----------
+  // YouTube / Vimeo / direct MP4 video — fills the entire ad slot,
+  // muted + autoplay + looped (browser policy compliant).
+  if (displayVideo) {
+    const kind = detectVideoKind(displayVideo);
+    let iframeSrc = '';
+    let isFileVideo = false;
+    if (kind === 'youtube') iframeSrc = buildYouTubeAdEmbed(displayVideo);
+    else if (kind === 'vimeo') iframeSrc = buildVimeoAdEmbed(displayVideo);
+    else if (kind === 'video') isFileVideo = true;
+
+    // For YouTube/Vimeo: the iframe needs to be sized LARGER than the container,
+    // maintaining 16:9 aspect ratio, so the actual video portion always covers
+    // the entire visible ad slot area (no black bars).
+    // Cover mode is the default; Contain mode keeps the original behaviour.
+    const isYouTube = kind === 'youtube';
+    const isVimeo = kind === 'vimeo';
+    const useCover = displayFit !== 'contain';
+
+    // When in Cover mode for YouTube/Vimeo iframes:
+    //   - aspect-ratio: 16/9 forces the iframe's natural ratio
+    //   - min-width: 100% + min-height: 100% force it to be at least as
+    //     large as the container in BOTH dimensions
+    //   - width: auto + height: auto let the browser compute the smaller of
+    //     the two valid sizes that satisfy 16:9 + both min constraints,
+    //     which guarantees the iframe overflows the container exactly enough
+    //     for the video to fill it without bars.
+    //   - overflow: hidden on the wrapper crops the excess.
+    const iframeStyle = useCover
+      ? {
+          display: 'block',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          minWidth: '100%',
+          minHeight: '100%',
+          width: 'auto',
+          height: 'auto',
+          aspectRatio: '16 / 9',
+          transform: 'translate(-50%, -50%)',
+          border: 0,
+          pointerEvents: 'none',
+          background: displayBg,
+        }
+      : {
+          display: 'block',
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          width: '100%',
+          height: '100%',
+          transform: 'translate(-50%, -50%)',
+          border: 0,
+          pointerEvents: 'none',
+          background: displayBg,
+        };
+
+    return (
+      <a
+        className={`ad-slot ad-slot-${displayNetwork} ad-slot-filled ad-slot-video ${className}`}
+        data-size={size}
+        style={effectiveStyle}
+        aria-label="advertisement"
+        href={displayHref}
+        target={displayHref && displayHref !== '#' ? '_blank' : undefined}
+        rel="noopener noreferrer"
+      >
+        <AdLabel network={displayNetwork} copy={displaySlotId} />
+        {/* Inner crop wrapper — hides any iframe overflow so video fills cleanly */}
+        <div style={{ position: 'absolute', inset: 0, overflow: 'hidden', background: displayBg }}>
+          {isFileVideo ? (
+            <video
+              src={displayVideo}
+              autoPlay
+              muted
+              loop
+              playsInline
+              preload="metadata"
+              style={{
+                display: 'block',
+                position: 'absolute',
+                inset: 0,
+                width: '100%',
+                height: '100%',
+                objectFit: displayFit,
+                pointerEvents: 'none',
+                background: displayBg,
+              }}
+            />
+          ) : iframeSrc ? (
+            <iframe
+              src={iframeSrc}
+              title="advertisement video"
+              allow="autoplay; encrypted-media; picture-in-picture"
+              allowFullScreen
+              frameBorder="0"
+              tabIndex={-1}
+              style={iframeStyle}
+            />
+          ) : (
+            <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '12px', fontFamily: 'monospace', background: '#111' }}>
+              ▶ Unsupported video URL
+            </div>
+          )}
+        </div>
+        {/*
+          Transparent hover-blocking overlay — sits ABOVE the iframe so YouTube
+          never receives mouse events. This prevents the title bar, pause/skip
+          arrows, and "More videos" panel from appearing on hover. The <a>
+          parent still receives the click (overlay has pointer-events: auto
+          inherited from default <span>) but the iframe inside doesn't see hover.
+        */}
+        <span
+          style={{
+            position: 'absolute',
+            inset: 0,
+            zIndex: 3,
+            cursor: displayHref && displayHref !== '#' ? 'pointer' : 'default',
+            background: 'transparent',
+          }}
+          aria-hidden="true"
+        />
+        <span className="ad-slot-corner" style={{ zIndex: 4 }}>{cornerFor(displayNetwork)}</span>
+      </a>
+    );
+  }
+
+  // ---------- IMAGE AD ----------
+  // Any-size image — scaled to fully fill the slot.
+  //  - 'cover' (default): crops to fill the slot, no bars, may lose edges
+  //  - 'contain': shows the full image with letterbox bars on empty sides
+  //  - 'natural': slot resizes to image's aspect ratio — full image, no bars
   if (displayCreative) {
+    const isNatural = displayFit === 'natural';
     return (
       <a
         className={`ad-slot ad-slot-${displayNetwork} ad-slot-filled ${className}`}
@@ -98,7 +339,32 @@ export function AdSlot({ network = "google", size = "728x90", slotId = "", note 
         href={displayHref}
       >
         <AdLabel network={displayNetwork} copy={displaySlotId} />
-        <img src={displayCreative} alt="" loading="lazy" style={{ display: 'block', width: "100%", height: "100%", objectFit: "cover" }} />
+        <img
+          src={displayCreative}
+          alt=""
+          loading="lazy"
+          onLoad={(e) => {
+            const w = e.target.naturalWidth;
+            const h = e.target.naturalHeight;
+            if (w && h) {
+              const ratio = w / h;
+              // Only update state if the ratio actually changed (avoid infinite re-renders)
+              setNaturalAspect((prev) => (prev !== ratio ? ratio : prev));
+            }
+          }}
+          style={{
+            display: 'block',
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            // In natural mode the slot itself adapts to the image aspect ratio,
+            // so 'contain' is used so any rounding gaps stay transparent.
+            objectFit: isNatural ? 'contain' : displayFit,
+            objectPosition: 'center',
+            background: displayBg,
+          }}
+        />
         <span className="ad-slot-corner">{cornerFor(displayNetwork)}</span>
       </a>
     );

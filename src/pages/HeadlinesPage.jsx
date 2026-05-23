@@ -221,7 +221,7 @@ export default function HeadlinesPage() {
             <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
               விளம்பரம் · SPONSORED
             </div>
-            <AdSlot network="sponsor" size="970x90" slotId="headlines-inline-2" note="In-feed banner · 970 × 90" style={{ maxWidth: '100%' }} />
+            <AdSlot network="sponsor" size="970x350" slotId="headlines-inline-2" note="In-feed Billboard · 970 × 350" style={{ maxWidth: '100%' }} />
           </div>
 
           {/* MAIN NEWSLETTER BANNER */}
@@ -244,7 +244,7 @@ export default function HeadlinesPage() {
               <span>{pc.leaderboardLabel}</span>
               <span>970 × 160</span>
             </div>
-            <AdSlot network="sponsor" size="970x160" slotId="headlines-leaderboard" note={pc.leaderboardText || 'Brand Lockup'} style={{ maxWidth: '100%' }} />
+            <AdSlot network="sponsor" size="970x350" slotId="headlines-leaderboard" note={pc.leaderboardText || 'Brand Lockup · Tall Billboard'} style={{ maxWidth: '100%' }} />
           </div>
 
           {/* SECTION HEAD */}
@@ -281,7 +281,7 @@ export default function HeadlinesPage() {
             <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
               {pc.midAdLabel}
             </div>
-            <AdSlot network="sponsor" size="970x160" slotId="headlines-mid-ad" note={pc.midAdText || 'Brand lockup • in-feed unit'} style={{ maxWidth: '100%' }} />
+            <AdSlot network="sponsor" size="970x350" slotId="headlines-mid-ad" note={pc.midAdText || 'Brand lockup · Tall Billboard 970 × 350'} style={{ maxWidth: '100%' }} />
           </div>
 
           {/* INLINE AD #3 — extra mid-feed unit */}
@@ -289,21 +289,22 @@ export default function HeadlinesPage() {
             <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
               விளம்பரம் · SPONSORED
             </div>
-            <AdSlot network="sponsor" size="970x90" slotId="headlines-inline-3" note="In-feed banner · 970 × 90" style={{ maxWidth: '100%' }} />
+            <AdSlot network="sponsor" size="970x350" slotId="headlines-inline-3" note="In-feed Billboard · 970 × 350" style={{ maxWidth: '100%' }} />
           </div>
 
-          {/* PHOTO STORY */}
+          {/* PHOTO STORY — now with tall ad box on the right side */}
           {photoStory.length > 0 && (
             <section style={{ marginTop: '32px' }}>
               <div className="law-section-head" style={{ marginBottom: '20px' }}>
                 <h2>{pc.photoStoryHead}<span className="law-live-dot"></span></h2>
                 <div className="law-more">{pc.photoStoryMore}</div>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '16px' }}>
+              {/* 3-column layout: big photo | stacked photos | tall ad */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1.3fr 1fr 300px', gap: '16px', alignItems: 'stretch' }}>
                 {/* Big left photo */}
                 {photoStory[0] && (
                   <a href={resolveLink(photoStory[0])} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit' }}>
-                    <div style={{ flex: 1, minHeight: '420px', background: photoStory[0].img ? `url(${photoStory[0].img}) center/cover no-repeat` : stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '13px', color: 'var(--ink-3)', letterSpacing: '0.15em' }}>
+                    <div style={{ flex: 1, minHeight: '720px', background: photoStory[0].img ? `url(${photoStory[0].img}) center/cover no-repeat` : stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '13px', color: 'var(--ink-3)', letterSpacing: '0.15em' }}>
                       {!photoStory[0].img && <span>{photoStory[0].placeholder}</span>}
                     </div>
                     {photoStory[0].caption && (
@@ -311,7 +312,7 @@ export default function HeadlinesPage() {
                     )}
                   </a>
                 )}
-                {/* Right column (stacked) */}
+                {/* Middle column (stacked photos) */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                   {photoStory.slice(1).map((p, i) => (
                     <a key={i} href={resolveLink(p)} style={{ display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit', flex: 1 }}>
@@ -324,6 +325,19 @@ export default function HeadlinesPage() {
                     </a>
                   ))}
                 </div>
+                {/* Right column — TALL ad box matching the photo story height */}
+                <div style={{ display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                    விளம்பரம் · SPONSORED
+                  </div>
+                  <AdSlot
+                    network="sponsor"
+                    size="300x900"
+                    slotId="headlines-photo-story-side"
+                    note="Tall Skyscraper · 300 × 900"
+                    style={{ maxWidth: '100%', flex: 1, height: '100%' }}
+                  />
+                </div>
               </div>
             </section>
           )}
@@ -335,8 +349,23 @@ export default function HeadlinesPage() {
                 {bottomCta.sponsored}
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '180px 1fr', gap: '24px', alignItems: 'center' }}>
-                <div style={{ width: '100%', aspectRatio: '4/3', background: stripe, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--mono)', fontSize: '12px', color: 'var(--ink-3)', letterSpacing: '0.15em' }}>
-                  {bottomCta.placeholder}
+                <div style={{
+                  width: '100%',
+                  aspectRatio: '4/3',
+                  background: bottomCta.image
+                    ? `url(${bottomCta.image}) center/cover no-repeat`
+                    : stripe,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontFamily: 'var(--mono)',
+                  fontSize: '12px',
+                  color: 'var(--ink-3)',
+                  letterSpacing: '0.15em',
+                  borderRadius: '6px',
+                  overflow: 'hidden'
+                }}>
+                  {!bottomCta.image && bottomCta.placeholder}
                 </div>
                 <div>
                   <h3 style={{ margin: '0 0 8px 0', fontFamily: 'var(--serif)', fontSize: '22px', fontWeight: 800, color: 'var(--ink)', lineHeight: 1.3 }}>{bottomCta.title}</h3>
@@ -437,6 +466,30 @@ export default function HeadlinesPage() {
               விளம்பரம் · SPONSORED
             </div>
             <AdSlot network="sponsor" size="300x250" slotId="headlines-sidebar-3" note="MPU · 300 × 250" style={{ maxWidth: '100%' }} />
+          </div>
+
+          {/* SIDEBAR AD #4 (300x600 tall — fills the long empty space) */}
+          <div className="law-sidebar-block" style={{ padding: '14px 18px' }}>
+            <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              ஆதரவாளர் விளம்பரம்
+            </div>
+            <AdSlot network="sponsor" size="300x600" slotId="headlines-sidebar-4" note="Half Page · 300 × 600" style={{ maxWidth: '100%' }} />
+          </div>
+
+          {/* SIDEBAR AD #5 (300x600 tall — keeps the column filled till page bottom) */}
+          <div className="law-sidebar-block" style={{ padding: '14px 18px' }}>
+            <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              ஆதரவாளர் விளம்பரம்
+            </div>
+            <AdSlot network="sponsor" size="300x600" slotId="headlines-sidebar-5" note="Half Page · 300 × 600" style={{ maxWidth: '100%' }} />
+          </div>
+
+          {/* SIDEBAR AD #6 (300x250 MPU — bottom anchor) */}
+          <div className="law-sidebar-block" style={{ padding: '14px 18px' }}>
+            <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
+              விளம்பரம் · SPONSORED
+            </div>
+            <AdSlot network="sponsor" size="300x250" slotId="headlines-sidebar-6" note="MPU · 300 × 250" style={{ maxWidth: '100%' }} />
           </div>
         </aside>
       </div>

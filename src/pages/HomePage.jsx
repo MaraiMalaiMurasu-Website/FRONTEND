@@ -470,6 +470,14 @@ export default function HomePage() {
             <HeroVideo video={leadVideo} blurb={heroBlurb} />
             <div className="hero-side">
               {heroSideItems.map((s, i) => <SideCard key={i} item={s} />)}
+
+              {/* Sidebar ad box — fills the empty space below the news cards */}
+              <div style={{ marginTop: '20px' }}>
+                <div style={{ fontSize: '10px', letterSpacing: '0.18em', color: 'var(--ink-3)', fontFamily: 'var(--sans)', textTransform: 'uppercase', marginBottom: '8px' }}>
+                  விளம்பரம் · SPONSORED
+                </div>
+                <AdSlot network="sponsor" size="300x250" slotId="home-hero-sidebar-1" note="MPU · 300 × 250" style={{ maxWidth: '100%' }} />
+              </div>
             </div>
           </div>
         </div>
@@ -484,7 +492,7 @@ export default function HomePage() {
           <div className="card-grid">
             {customTopStories.map((s, i) => <Card key={i} data={s} withVideo={i === 1} />)}
           </div>
-          <AdSlot network="google" size="728x90" slotId="home-leaderboard-1" note="Google Ad Manager · Leaderboard" style={{marginTop: 32, maxWidth: '100%'}} />
+          <AdSlot network="google" size="970x350" slotId="home-leaderboard-1" note="Google Ad Manager · Tall Billboard" style={{marginTop: 32, maxWidth: '100%'}} />
         </div>
       </section>
 
@@ -518,7 +526,7 @@ export default function HomePage() {
           <div className="card-grid">
             {customCinema.map((s, i) => <Card key={i} data={s} withVideo={i < 2} />)}
           </div>
-          <AdSlot network="sponsor" size="728x250" slotId="home-billboard-samsung" style={{marginTop: 32, maxWidth: '100%'}} />
+          <AdSlot network="sponsor" size="970x350" slotId="home-billboard-samsung" note="Sponsor · Tall Billboard" style={{marginTop: 32, maxWidth: '100%'}} />
         </div>
       </section>
 
@@ -565,6 +573,9 @@ export default function HomePage() {
             <ColBlock data={{ ...sportsColData, head: siteSettings.section3Title || sportsColData.head }} />
             <ColBlock data={{ ...lifestyleColData, head: siteSettings.section4Title || lifestyleColData.head }} />
           </div>
+
+          {/* Bottom billboard — tall ad box matching the home page's other billboards */}
+          <AdSlot network="sponsor" size="970x350" slotId="home-bottom-billboard" note="Sponsor · Tall Billboard" style={{ marginTop: 36, maxWidth: '100%' }} />
         </div>
       </section>
 

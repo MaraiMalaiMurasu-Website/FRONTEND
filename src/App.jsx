@@ -14,11 +14,28 @@ import LawPage from './pages/LawPage.jsx';
 import EPaperPage from './pages/EPaperPage.jsx';
 import AdminApp from './admin/AdminApp.jsx';
 import { runHomeContentMigration } from './utils/contentMigration.js';
+import { startAdSettingsPolling } from './utils/adsApi.js';
+import { installSyncInterceptor, pullAllContent, startContentPolling } from './utils/contentSync.js';
 
-// Run PDF content migration as soon as the module loads (before React mounts).
-// This overwrites any stale customHomeContent with the latest issue, so users
-// always see the current week's PDF content on next page load.
-runHomeContentMigration();
+// 1. Install the localStorage→server sync interceptor IMMEDIATELY (before
+//    any page code touches localStorage). Future setItem calls from anywhere
+//    in the app (admin or otherwise) will now mirror to the shared backend.
+installSyncInterceptor();
+
+// 2. Pull all content from server into localStorage so the site renders the
+//    same data on every browser. This is async but fire-and-forget — the
+//    poll loop will catch up if the first attempt fails.
+pullAllContent().then(() => {
+  // Re-run the content migration AFTER pulling so the latest PDF version
+  // marker on the server wins over any locally cached one.
+  runHomeContentMigration();
+});
+
+// 3. Start polling loops for both ad settings and content. Every browser
+//    automatically picks up admin changes within ~10 seconds, falls back
+//    silently to local cache if the backend goes down.
+startAdSettingsPolling();
+startContentPolling();
 
 const TWEAK_DEFAULTS = {
   accent: "#C8102E",
