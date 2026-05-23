@@ -1,0 +1,17 @@
+# Don't ship the standalone Express server to Vercel.
+# That's for LOCAL development only (cd server && npm start).
+# On Vercel, the API lives in /api/ as serverless functions.
+server/
+
+# Local-only dev files
+*.local
+.env.local
+.env.development
+
+# Editor stuff
+.vscode/
+.idea/
+
+# OS noise
+.DS_Store
+Thumbs.db
