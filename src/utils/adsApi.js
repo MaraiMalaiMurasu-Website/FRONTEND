@@ -16,7 +16,17 @@
     3. After admin saves, all browsers poll every 10s OR receive a manual reload
 */
 
-const API_BASE = (import.meta.env.VITE_ADS_API || 'http://localhost:5050').replace(/\/$/, '');
+// On Vercel, the API lives at /api on the same origin. Locally without an env
+// override, fall back to the standalone Express server at localhost:5050.
+// Setting VITE_ADS_API='' or '/' forces same-origin /api on every host.
+const API_BASE = (() => {
+  const explicit = import.meta.env.VITE_ADS_API;
+  if (explicit !== undefined && explicit !== '') return explicit.replace(/\/$/, '');
+  // No explicit setting: in the browser, default to same-origin '' (so /api works on Vercel)
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') return '';
+  // Local development: use the standalone Express server
+  return 'http://localhost:5050';
+})();
 const API_TOKEN = import.meta.env.VITE_ADS_API_TOKEN || 'maraimalai-murasu-2026';
 const STORAGE_KEY = 'adSettings';
 const POLL_INTERVAL = 10000; // 10 seconds — how often public pages check for ad updates

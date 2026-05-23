@@ -23,7 +23,13 @@
     (Ads are handled by the separate adsApi.js with its own dedicated endpoint.)
 */
 
-const API_BASE  = (import.meta.env.VITE_ADS_API || 'http://localhost:5050').replace(/\/$/, '');
+// Match adsApi.js — same-origin on production, localhost in dev
+const API_BASE = (() => {
+  const explicit = import.meta.env.VITE_ADS_API;
+  if (explicit !== undefined && explicit !== '') return explicit.replace(/\/$/, '');
+  if (typeof window !== 'undefined' && window.location.hostname !== 'localhost') return '';
+  return 'http://localhost:5050';
+})();
 const API_TOKEN = import.meta.env.VITE_ADS_API_TOKEN || 'maraimalai-murasu-2026';
 const POLL_INTERVAL = 10000;
 
