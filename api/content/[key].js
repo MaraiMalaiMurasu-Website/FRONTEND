@@ -1,8 +1,9 @@
 // /api/content/:key — GET (public), POST/DELETE (protected)
 import { get, set, del } from '../_lib/store.js';
-import { checkAuth, getBody, ALLOWED_KEYS } from '../_lib/config.js';
+import { checkAuth, getBody, ALLOWED_KEYS, applyCors } from '../_lib/config.js';
 
 export default async function handler(req, res) {
+  if (applyCors(req, res)) return;
   const { key } = req.query;
   if (!ALLOWED_KEYS.has(key)) {
     return res.status(400).json({ error: `Unknown key: ${key}` });

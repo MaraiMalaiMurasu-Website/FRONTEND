@@ -1,8 +1,9 @@
 // /api/ads — GET (public), POST/PATCH (protected)
 import { get, set } from '../_lib/store.js';
-import { checkAuth, getBody, DEFAULT_ADS } from '../_lib/config.js';
+import { checkAuth, getBody, DEFAULT_ADS, applyCors } from '../_lib/config.js';
 
 export default async function handler(req, res) {
+  if (applyCors(req, res)) return;
   try {
     if (req.method === 'GET') {
       const ads = (await get('ads')) || DEFAULT_ADS;
