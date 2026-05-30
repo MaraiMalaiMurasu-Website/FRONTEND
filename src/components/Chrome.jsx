@@ -28,6 +28,28 @@ function fmtClock(d) {
 // ---------- Utility Bar ----------
 export function UtilityBar() {
   const now = useLiveTime();
+  const [rni, setRni] = useState('RNI.No. TNTAM / 2023 / 88613');
+
+  // Read RNI number from admin-saved customSiteSettings (or use default)
+  useEffect(() => {
+    const load = () => {
+      try {
+        const saved = localStorage.getItem('customSiteSettings');
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          if (parsed.rniNumber && typeof parsed.rniNumber === 'string') {
+            setRni(parsed.rniNumber);
+          }
+        }
+      } catch (e) { /* ignore */ }
+    };
+    load();
+    const onChange = (e) => {
+      if (!e || e.key === 'customSiteSettings') load();
+    };
+    window.addEventListener('storage', onChange);
+    return () => window.removeEventListener('storage', onChange);
+  }, []);
 
   const handleEPaperClick = (e) => {
     e.preventDefault();
@@ -47,6 +69,12 @@ export function UtilityBar() {
           <a href="#" onClick={handleEPaperClick} style={{ color: 'inherit', cursor: 'pointer' }}>இ-பேப்பர்</a>
           <span>போட்காஸ்ட்</span>
           <span>சந்தா</span>
+          {rni && (
+            <>
+              <span className="sep">|</span>
+              <span className="rni-no" style={{ fontFamily: 'var(--mono)', letterSpacing: '0.02em' }}>{rni}</span>
+            </>
+          )}
         </div>
         <div className="utility-right">
           <span className="pill"><span className="dot"></span>நேரலை இணைப்பு</span>
@@ -90,6 +118,14 @@ export function Masthead() {
 export function PrimaryNav({ active = "headlines", onSearch }) {
   const [openDrop, setOpenDrop] = useState(null);
   const [navItems, setNavItems] = useState([]);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on resize back to desktop, and on route navigation
+  useEffect(() => {
+    const onResize = () => { if (window.innerWidth > 720) setMobileMenuOpen(false); };
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   useEffect(() => {
     const buildNav = () => {
@@ -152,7 +188,33 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
   return (
     <nav className="primary-nav">
       <div className="nav-inner">
-        <ul className="nav-list">
+        {/* Mobile hamburger toggle — hidden on desktop via CSS */}
+        <button
+          type="button"
+          className="mobile-menu-toggle"
+          aria-label="Open menu"
+          aria-expanded={mobileMenuOpen}
+          onClick={() => setMobileMenuOpen(v => !v)}
+          style={{
+            color: '#F2ECE0',
+            border: '1px solid rgba(242, 236, 224, 0.3)',
+            marginRight: 8,
+          }}
+        >
+          {mobileMenuOpen ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="6" y1="6" x2="18" y2="18" />
+              <line x1="18" y1="6" x2="6" y2="18" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          )}
+        </button>
+        <ul className={mobileMenuOpen ? "nav-list is-open" : "nav-list"}>
           {navItems.map(n => (
             <li
               key={n.id}
@@ -164,7 +226,7 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
               <a
                 href={n.href}
                 className={n.id === active ? "active" : ""}
-                onClick={(e) => handleNav(e, n.href)}
+                onClick={(e) => { setMobileMenuOpen(false); handleNav(e, n.href); }}
               >
                 {n.label}
                 {n.dropdown && <span style={{ marginLeft: 6, fontSize: 10, opacity: 0.7 }}>▾</span>}
@@ -183,7 +245,7 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
                         display: "block", padding: "12px 18px",
                         fontFamily: "var(--serif)", fontSize: 15, color: "#F2ECE0",
                       }}
-                        onClick={(e) => handleNav(e, d.href)}
+                        onClick={(e) => { setMobileMenuOpen(false); handleNav(e, d.href); }}
                         onMouseEnter={e => { e.currentTarget.style.background = "var(--accent)"; e.currentTarget.style.color = "#fff"; }}
                         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#F2ECE0"; }}
                       >{d.label}</a>
@@ -206,6 +268,149 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
         </div>
       </div>
     </nav>
+  );
+}
+
+// ---------- SubNav (parent dropdown page sub-categories) ----------
+// When the visitor is on a dropdown parent page (/spiritual, /more), this
+// component shows the dropdown's children as a horizontal tab bar so they
+// can jump between sub-categories without re-opening the dropdown.
+export function SubNav({ currentPath }) {
+  const [items, setItems] = useState([]);
+  const [parentLabel, setParentLabel] = useState('');
+
+  useEffect(() => {
+    const buildSubNav = () => {
+      let cats = [];
+      try {
+        const saved = localStorage.getItem('customCategories');
+        if (saved) cats = JSON.parse(saved);
+      } catch (e) { /* ignore */ }
+
+      if (!cats || cats.length === 0) {
+        cats = [
+          { id: 1, name: 'தலைப்புச் செய்திகள்', slug: 'headlines' },
+          { id: 2, name: 'சட்டம் முரசு', slug: 'law' },
+          { id: 3, name: 'ஆன்மீகம்', slug: 'spiritual' },
+          { id: 4, name: 'ஜோதிடம்', slug: 'astrology', parentId: 3 },
+          { id: 5, name: 'சினிமா', slug: 'cinema' },
+          { id: 6, name: 'விளையாட்டு', slug: 'sports' },
+          { id: 7, name: 'மற்றவை', slug: 'more' },
+          { id: 8, name: 'அழகுகுறிப்பு', slug: 'beauty', parentId: 7 },
+          { id: 9, name: 'சமையல்', slug: 'cooking', parentId: 7 },
+        ];
+      }
+
+      const slug = currentPath.replace(/^\//, '');
+      const parent = cats.find(c => c.slug === slug && !c.parentId);
+      let activeParentId = parent ? parent.id : null;
+
+      // Also handle the case when we're already on a sub-page — keep the sub-nav
+      if (!activeParentId) {
+        const sub = cats.find(c => c.slug === slug && c.parentId);
+        if (sub) activeParentId = sub.parentId;
+      }
+
+      if (activeParentId) {
+        const parentCat = cats.find(c => c.id === activeParentId);
+        const children = cats.filter(c => String(c.parentId) === String(activeParentId));
+        if (children.length > 0) {
+          // Prepend the parent itself as the first tab ("All")
+          setItems([
+            { name: 'அனைத்தும்', slug: parentCat.slug, isOverview: true },
+            ...children.map(c => ({ name: c.name, slug: c.slug })),
+          ]);
+          setParentLabel(parentCat.name);
+          return;
+        }
+      }
+      setItems([]);
+      setParentLabel('');
+    };
+
+    buildSubNav();
+    window.addEventListener('storage', buildSubNav);
+    return () => window.removeEventListener('storage', buildSubNav);
+  }, [currentPath]);
+
+  const handleNav = (e, slug) => {
+    e.preventDefault();
+    window.history.pushState({}, '', '/' + slug);
+    window.dispatchEvent(new Event('popstate'));
+  };
+
+  if (items.length === 0) return null;
+
+  const currentSlug = currentPath.replace(/^\//, '');
+
+  return (
+    <div className="sub-nav" style={{
+      background: '#F5F1E8',
+      borderBottom: '2px solid var(--accent)',
+      padding: '0',
+    }}>
+      <div style={{
+        maxWidth: '1280px',
+        margin: '0 auto',
+        padding: '0 18px',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '20px',
+        overflowX: 'auto',
+        WebkitOverflowScrolling: 'touch',
+        whiteSpace: 'nowrap',
+        scrollbarWidth: 'none',
+      }}>
+        <span style={{
+          fontFamily: 'var(--sans)',
+          fontSize: '11px',
+          fontWeight: 700,
+          color: 'var(--ink-3)',
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          padding: '12px 0',
+          flexShrink: 0,
+          borderRight: '1px solid var(--rule)',
+          paddingRight: '20px',
+        }}>
+          {parentLabel}
+        </span>
+        {items.map((item, i) => {
+          const isActive = currentSlug === item.slug;
+          return (
+            <a
+              key={i}
+              href={'/' + item.slug}
+              onClick={(e) => handleNav(e, item.slug)}
+              style={{
+                padding: '14px 4px',
+                fontFamily: 'var(--serif)',
+                fontSize: '14px',
+                fontWeight: isActive ? 700 : 500,
+                color: isActive ? 'var(--accent)' : 'var(--ink-2)',
+                textDecoration: 'none',
+                borderBottom: isActive ? '3px solid var(--accent)' : '3px solid transparent',
+                marginBottom: '-2px',
+                transition: 'color 0.15s, border-color 0.15s',
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => { if (!isActive) e.currentTarget.style.color = 'var(--accent)'; }}
+              onMouseLeave={e => { if (!isActive) e.currentTarget.style.color = 'var(--ink-2)'; }}
+            >
+              {item.name}
+            </a>
+          );
+        })}
+      </div>
+      <style>{`
+        .sub-nav > div::-webkit-scrollbar { display: none; }
+        @media (max-width: 720px) {
+          .sub-nav > div { padding: 0 12px !important; gap: 14px !important; }
+          .sub-nav > div > span { padding-right: 12px !important; font-size: 10px !important; }
+          .sub-nav > div > a { font-size: 13px !important; padding: 12px 2px !important; }
+        }
+      `}</style>
+    </div>
   );
 }
 

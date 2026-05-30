@@ -214,6 +214,52 @@ app.delete('/api/content/:key', requireAuth, async (req, res) => {
   }
 });
 
+// ── Contact form — local dev mirror of /api/contact ──────────────────────
+// On Vercel this endpoint is served from api/contact.js. This local copy
+// keeps the contact form working during `npm run dev`. Set SMTP_* env vars
+// to actually send email; otherwise the message is just logged to console.
+app.post('/api/contact', async (req, res) => {
+  try {
+    const { name = '', email = '', phone = '', subject = '', message = '' } = req.body || {};
+    if (!name || typeof name !== 'string') return res.status(400).json({ error: 'Name is required' });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Valid email is required' });
+    if (!message || message.trim().length < 10) return res.status(400).json({ error: 'Message must be at least 10 characters' });
+
+    // Try sending via nodemailer if installed + configured. Otherwise just log.
+    const SMTP_HOST = process.env.SMTP_HOST;
+    const SMTP_USER = process.env.SMTP_USER;
+    const SMTP_PASS = process.env.SMTP_PASS;
+    if (SMTP_HOST && SMTP_USER && SMTP_PASS) {
+      try {
+        const nm = await import('nodemailer');
+        const transporter = nm.default.createTransport({
+          host: SMTP_HOST,
+          port: parseInt(process.env.SMTP_PORT || '587', 10),
+          secure: process.env.SMTP_SECURE === 'true',
+          auth: { user: SMTP_USER, pass: SMTP_PASS },
+        });
+        await transporter.sendMail({
+          from: process.env.CONTACT_FROM || `Maraimalai Murasu <${SMTP_USER}>`,
+          to: process.env.CONTACT_TO || SMTP_USER,
+          replyTo: `${name} <${email}>`,
+          subject: `[மறைமலை முரசு] ${subject || 'Contact form'} — ${name}`,
+          text: `From: ${name} <${email}>\nPhone: ${phone}\nSubject: ${subject}\n\n${message}`,
+        });
+        console.log('[contact] email sent for ' + email);
+        return res.status(200).json({ ok: true });
+      } catch (mailErr) {
+        console.error('[contact] mail send failed:', mailErr.message);
+      }
+    }
+
+    console.log('[contact] message received (no SMTP — log only):', { name, email, phone, subject, message: message.slice(0, 200) });
+    return res.status(200).json({ ok: true, warning: 'SMTP not configured — logged only' });
+  } catch (err) {
+    console.error('POST /api/contact failed:', err);
+    return res.status(500).json({ error: 'Failed to send message' });
+  }
+});
+
 app.use((req, res) => res.status(404).json({ error: 'Not found' }));
 
 app.listen(PORT, () => {

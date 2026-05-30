@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { UtilityBar, Masthead, PrimaryNav, Ticker, SearchOverlay, Footer } from './components/Chrome.jsx';
+import { UtilityBar, Masthead, PrimaryNav, SubNav, Ticker, SearchOverlay, Footer } from './components/Chrome.jsx';
 import HomePage from './pages/HomePage.jsx';
 import AstrologyPage from './pages/AstrologyPage.jsx';
+import SpiritualPage from './pages/SpiritualPage.jsx';
+import MorePage from './pages/MorePage.jsx';
 import ArticlePage from './pages/ArticlePage.jsx';
 import CategoryPage from './pages/CategoryPage.jsx';
 import HeadlinesPage from './pages/HeadlinesPage.jsx';
@@ -90,11 +92,11 @@ export default function App() {
   const getActiveTab = () => {
     if (currentPath === '/') return 'home';
     if (currentPath === '/headlines') return 'headlines';
-    if (currentPath === '/astrology') return 'spiritual';
+    if (currentPath === '/astrology' || currentPath === '/spiritual') return 'spiritual';
     if (currentPath === '/cinema') return 'cinema';
     if (currentPath === '/sports') return 'sports';
     if (currentPath === '/law' || currentPath === '/category' || currentPath === '/article') return 'law';
-    if (currentPath === '/beauty' || currentPath === '/cooking') return 'more';
+    if (currentPath === '/beauty' || currentPath === '/cooking' || currentPath === '/more') return 'more';
     return '';
   };
 
@@ -112,6 +114,9 @@ export default function App() {
       <UtilityBar />
       <Masthead />
       <PrimaryNav active={getActiveTab()} onSearch={() => setSearchOpen(true)} />
+      {/* SubNav: only renders when on a dropdown parent page (/spiritual, /more)
+          or one of its children (/astrology, /beauty, /cooking) */}
+      <SubNav currentPath={currentPath} />
       <Ticker />
 
 
@@ -121,10 +126,14 @@ export default function App() {
         <div className="app-body-grid">
           <main className="app-main">
             {currentPath === '/astrology' ? <AstrologyPage /> :
+             /* ஆன்மீகம் (Spiritual) dropdown parent — dedicated spiritual hub page */
+             currentPath === '/spiritual' ? <SpiritualPage /> :
              currentPath === '/cinema' ? <CinemaPage /> :
              currentPath === '/sports' ? <SportsPage /> :
              currentPath === '/beauty' ? <BeautyPage /> :
              currentPath === '/cooking' ? <CookingPage /> :
+             /* மற்றவை (More) dropdown parent — dedicated lifestyle hub page */
+             currentPath === '/more' ? <MorePage /> :
              currentPath === '/law' ? <LawPage /> :
              currentPath === '/epaper' ? <EPaperPage /> :
              currentPath === '/article' ? <ArticlePage /> :

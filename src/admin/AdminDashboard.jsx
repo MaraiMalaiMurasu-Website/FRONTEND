@@ -38,6 +38,7 @@ function AdsApiStatus() {
 
   const isOnline = status.online === true;
   const isChecking = status.online === null;
+  const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
   const bg = isOnline ? '#ECFDF5' : isChecking ? '#F3F4F6' : '#FEF2F2';
   const border = isOnline ? '#86EFAC' : isChecking ? '#D1D5DB' : '#FCA5A5';
   const color = isOnline ? '#065F46' : isChecking ? '#374151' : '#991B1B';
@@ -46,7 +47,9 @@ function AdsApiStatus() {
     ? 'Connected — ads sync to every browser & device'
     : isChecking
       ? 'Checking connection to Ads API…'
-      : 'Ads API offline — saves are stored in THIS browser only';
+      : isLocalhost
+        ? 'Local Ads API offline — start it with: cd server && npm start'
+        : 'Production backend not deployed — saves stay in THIS browser only';
 
   return (
     <div style={{
@@ -1446,7 +1449,12 @@ export default function AdminDashboard({ onLogout }) {
       siteTitle: 'மறைமலை முரசு — முன்களச் செய்திகள்',
       heroTitle: 'தேர்தல் 2026 களம்',
       section1Title: 'தேர்தல் கள விசாரணை',
-      section2Title: 'வெள்ளித் திரை · சமையல்'
+      section2Title: 'வெள்ளித் திரை · சமையல்',
+      rniNumber: 'RNI.No. TNTAM / 2023 / 88613',
+      // EmailJS — contact form email service (used by ContactPage)
+      emailjsServiceId:  'service_55wwent',
+      emailjsTemplateId: 'template_3ww2af7',
+      emailjsPublicKey:  '3syQjW5hMw_zi4QWn'
     };
   });
 
@@ -2333,11 +2341,13 @@ export default function AdminDashboard({ onLogout }) {
         const pageList = [
           { id: 'headlines', label: 'Headlines · தலைப்பு செய்திகள்' },
           { id: 'law', label: 'Law · சட்டம் முரசு' },
+          { id: 'spiritual', label: 'Spiritual hub · ஆன்மீகம்' },
+          { id: 'astrology', label: 'Astrology · ஜோதிடம்' },
           { id: 'cinema', label: 'Cinema · சினிமா' },
           { id: 'sports', label: 'Sports · விளையாட்டு' },
+          { id: 'more', label: 'More hub · மற்றவை' },
           { id: 'beauty', label: 'Beauty · அழகுகுறிப்பு' },
           { id: 'cooking', label: 'Cooking · சமையல்' },
-          { id: 'astrology', label: 'Astrology · ஜோதிடம்' },
           { id: 'article', label: 'Article · கட்டுரை' },
           { id: 'epaper', label: 'ePaper · இ-பேப்பர்' },
           { id: 'contact', label: 'Contact · தொடர்பு' }
@@ -5087,6 +5097,249 @@ export default function AdminDashboard({ onLogout }) {
               );
             })()}
 
+            {/* ===== SPIRITUAL HUB PAGE ===== */}
+            {activePage === 'spiritual' && (() => {
+              const sp = pagesContent.spiritual || {};
+              const upd = (field, val) => updatePage('spiritual', field, val);
+              const updNested = (sub, field, val) => updatePageNested('spiritual', sub, field, val);
+              const updArr = (key, idx, field, val) => {
+                const arr = [...(sp[key] || [])];
+                arr[idx] = { ...arr[idx], [field]: val };
+                upd(key, arr);
+              };
+              const addArr = (key, blank) => upd(key, [...(sp[key] || []), blank]);
+              const removeArr = (key, idx) => upd(key, (sp[key] || []).filter((_, i) => i !== idx));
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Header */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '2px solid #9D174D' }}>
+                    <h3 style={{ fontSize: '18px', margin: '0 0 16px 0', color: '#9D174D', fontWeight: 800 }}>🕉 ஆன்மீகம் Hub — Page Header</h3>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Title</label>
+                      <input type="text" value={sp.title || ''} onChange={(e) => upd('title', e.target.value)} placeholder="ஆன்மீகம்" style={{ ...inputStyle, fontSize: '16px', fontWeight: 700 }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Subtitle</label>
+                      <textarea rows="2" value={sp.subtitle || ''} onChange={(e) => upd('subtitle', e.target.value)} placeholder="கோயில் செய்திகள், திருவிழாக்கள்..." style={{ ...inputStyle, resize: 'vertical', fontSize: '13px' }} />
+                    </div>
+                  </div>
+
+                  {/* Featured */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', fontWeight: 700 }}>⭐ Featured Article</h3>
+                    <input type="text" value={sp.featured?.kicker || ''} onChange={(e) => updNested('featured', 'kicker', e.target.value)} placeholder="Kicker (சிறப்பு கட்டுரை)" style={{ ...inputStyle, fontSize: '12px', padding: '7px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={sp.featured?.title || ''} onChange={(e) => updNested('featured', 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '14px', padding: '8px 10px', marginBottom: '8px', fontWeight: 600 }} />
+                    <textarea rows="3" value={sp.featured?.excerpt || ''} onChange={(e) => updNested('featured', 'excerpt', e.target.value)} placeholder="Excerpt..." style={{ ...inputStyle, fontSize: '13px', padding: '8px 10px', marginBottom: '8px', resize: 'vertical' }} />
+                    <input type="text" value={sp.featured?.meta || ''} onChange={(e) => updNested('featured', 'meta', e.target.value)} placeholder="Meta (Desk · 2 hr ago)" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={sp.featured?.img || ''} onChange={(e) => updNested('featured', 'img', e.target.value)} placeholder="🖼 Image URL" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={sp.featured?.link || ''} onChange={(e) => updNested('featured', 'link', e.target.value)} placeholder="🔗 Link URL" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                  </div>
+
+                  {/* Category tiles */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>🎯 Category Tiles</h3>
+                      <button type="button" onClick={() => addArr('categories', { name: '', desc: '', href: '/article', icon: '✨', color: '#9D174D' })} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add Tile</button>
+                    </div>
+                    <input type="text" value={sp.categoriesHead || ''} onChange={(e) => upd('categoriesHead', e.target.value)} placeholder="Section heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                    {(sp.categories || []).map((c, i) => (
+                      <div key={i} style={{ padding: '10px', background: '#F9FAFB', borderRadius: '6px', border: '1px solid #E5E7EB', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                          <span style={{ width: '22px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)' }}>{i + 1}</span>
+                          <input type="text" value={c.icon || ''} onChange={(e) => updArr('categories', i, 'icon', e.target.value)} placeholder="🌟" style={{ ...inputStyle, fontSize: '14px', padding: '5px 8px', width: '50px', textAlign: 'center' }} />
+                          <input type="text" value={c.name || ''} onChange={(e) => updArr('categories', i, 'name', e.target.value)} placeholder="Tile name" style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px', flex: 1 }} />
+                          <input type="color" value={c.color || '#9D174D'} onChange={(e) => updArr('categories', i, 'color', e.target.value)} style={{ width: '32px', height: '28px', border: '1px solid #D1D5DB', borderRadius: '4px', padding: 0, cursor: 'pointer' }} />
+                          <button type="button" onClick={() => removeArr('categories', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                        </div>
+                        <input type="text" value={c.desc || ''} onChange={(e) => updArr('categories', i, 'desc', e.target.value)} placeholder="Description" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', marginBottom: '4px' }} />
+                        <input type="text" value={c.href || ''} onChange={(e) => updArr('categories', i, 'href', e.target.value)} placeholder="🔗 Link path (/astrology)" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px' }} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Mini panchangam */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 12px 0', fontWeight: 700 }}>✱ Mini Panchangam</h3>
+                    <input type="text" value={sp.panchangamHead || ''} onChange={(e) => upd('panchangamHead', e.target.value)} placeholder="Section heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={sp.panchangamCtaText || ''} onChange={(e) => upd('panchangamCtaText', e.target.value)} placeholder="CTA text (முழு பஞ்சாங்கம் காண →)" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '10px' }} />
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                      <input type="text" value={sp.panchangam?.date || ''} onChange={(e) => updNested('panchangam', 'date', e.target.value)} placeholder="Date" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      <input type="text" value={sp.panchangam?.tamilYear || ''} onChange={(e) => updNested('panchangam', 'tamilYear', e.target.value)} placeholder="Tamil year" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      <input type="text" value={sp.panchangam?.tithi || ''} onChange={(e) => updNested('panchangam', 'tithi', e.target.value)} placeholder="Tithi" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      <input type="text" value={sp.panchangam?.nakshatra || ''} onChange={(e) => updNested('panchangam', 'nakshatra', e.target.value)} placeholder="Nakshatra" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      <input type="text" value={sp.panchangam?.goodTime || ''} onChange={(e) => updNested('panchangam', 'goodTime', e.target.value)} placeholder="Good time" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      <input type="text" value={sp.panchangam?.rahuKalam || ''} onChange={(e) => updNested('panchangam', 'rahuKalam', e.target.value)} placeholder="Rahu kalam" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                    </div>
+                  </div>
+
+                  {/* Articles */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>📰 Spiritual Articles</h3>
+                      <button type="button" onClick={() => addArr('articles', { title: '', time: '', cat: 'ஆன்மீகம்', img: '', placeholder: 'NEWS', link: '' })} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add</button>
+                    </div>
+                    <input type="text" value={sp.articlesHead || ''} onChange={(e) => upd('articlesHead', e.target.value)} placeholder="Section heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                    {(sp.articles || []).map((a, i) => (
+                      <div key={i} style={{ padding: '10px', background: '#F9FAFB', borderRadius: '6px', border: '1px solid #E5E7EB', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                          <span style={{ width: '22px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)' }}>{i + 1}</span>
+                          <input type="text" value={a.title || ''} onChange={(e) => updArr('articles', i, 'title', e.target.value)} placeholder="Article title" style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px', flex: 2 }} />
+                          <input type="text" value={a.cat || ''} onChange={(e) => updArr('articles', i, 'cat', e.target.value)} placeholder="Cat" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                          <button type="button" onClick={() => removeArr('articles', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <input type="text" value={a.time || ''} onChange={(e) => updArr('articles', i, 'time', e.target.value)} placeholder="Time" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                          <input type="text" value={a.link || ''} onChange={(e) => updArr('articles', i, 'link', e.target.value)} placeholder="🔗 Link" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Sidebar */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>📌 Sidebar Featured Links</h3>
+                      <button type="button" onClick={() => addArr('sidebarItems', { title: '', link: '/article' })} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add</button>
+                    </div>
+                    <input type="text" value={sp.sidebarHead || ''} onChange={(e) => upd('sidebarHead', e.target.value)} placeholder="Sidebar heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                    {(sp.sidebarItems || []).map((s, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                        <input type="text" value={s.title || ''} onChange={(e) => updArr('sidebarItems', i, 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px', flex: 2 }} />
+                        <input type="text" value={s.link || ''} onChange={(e) => updArr('sidebarItems', i, 'link', e.target.value)} placeholder="🔗 Link" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                        <button type="button" onClick={() => removeArr('sidebarItems', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Bottom CTA */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 12px 0', fontWeight: 700 }}>🤝 Bottom Sponsor CTA</h3>
+                    <input type="text" value={sp.bottomCta?.title || ''} onChange={(e) => updNested('bottomCta', 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '8px' }} />
+                    <textarea rows="2" value={sp.bottomCta?.subtitle || ''} onChange={(e) => updNested('bottomCta', 'subtitle', e.target.value)} placeholder="Subtitle" style={{ ...inputStyle, fontSize: '12px', padding: '7px 10px', resize: 'vertical', marginBottom: '8px' }} />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input type="text" value={sp.bottomCta?.cta || ''} onChange={(e) => updNested('bottomCta', 'cta', e.target.value)} placeholder="CTA text" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', flex: 1 }} />
+                      <input type="text" value={sp.bottomCta?.ctaHref || ''} onChange={(e) => updNested('bottomCta', 'ctaHref', e.target.value)} placeholder="CTA URL" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', flex: 2 }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
+            {/* ===== MORE HUB PAGE ===== */}
+            {activePage === 'more' && (() => {
+              const mo = pagesContent.more || {};
+              const upd = (field, val) => updatePage('more', field, val);
+              const updNested = (sub, field, val) => updatePageNested('more', sub, field, val);
+              const updArr = (key, idx, field, val) => {
+                const arr = [...(mo[key] || [])];
+                arr[idx] = { ...arr[idx], [field]: val };
+                upd(key, arr);
+              };
+              const addArr = (key, blank) => upd(key, [...(mo[key] || []), blank]);
+              const removeArr = (key, idx) => upd(key, (mo[key] || []).filter((_, i) => i !== idx));
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Header */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '2px solid #DB2777' }}>
+                    <h3 style={{ fontSize: '18px', margin: '0 0 16px 0', color: '#DB2777', fontWeight: 800 }}>🌸 மற்றவை Hub — Page Header</h3>
+                    <div style={{ marginBottom: '12px' }}>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Title</label>
+                      <input type="text" value={mo.title || ''} onChange={(e) => upd('title', e.target.value)} placeholder="மற்றவை" style={{ ...inputStyle, fontSize: '16px', fontWeight: 700 }} />
+                    </div>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Subtitle</label>
+                      <textarea rows="2" value={mo.subtitle || ''} onChange={(e) => upd('subtitle', e.target.value)} placeholder="அழகு, சமையல், வாழ்க்கை முறை..." style={{ ...inputStyle, resize: 'vertical', fontSize: '13px' }} />
+                    </div>
+                  </div>
+
+                  {/* Featured */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', fontWeight: 700 }}>⭐ Featured Article</h3>
+                    <input type="text" value={mo.featured?.kicker || ''} onChange={(e) => updNested('featured', 'kicker', e.target.value)} placeholder="Kicker (வாழ்வியல் சிறப்பு)" style={{ ...inputStyle, fontSize: '12px', padding: '7px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={mo.featured?.title || ''} onChange={(e) => updNested('featured', 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '14px', padding: '8px 10px', marginBottom: '8px', fontWeight: 600 }} />
+                    <textarea rows="3" value={mo.featured?.excerpt || ''} onChange={(e) => updNested('featured', 'excerpt', e.target.value)} placeholder="Excerpt..." style={{ ...inputStyle, fontSize: '13px', padding: '8px 10px', marginBottom: '8px', resize: 'vertical' }} />
+                    <input type="text" value={mo.featured?.meta || ''} onChange={(e) => updNested('featured', 'meta', e.target.value)} placeholder="Meta" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={mo.featured?.img || ''} onChange={(e) => updNested('featured', 'img', e.target.value)} placeholder="🖼 Image URL" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
+                    <input type="text" value={mo.featured?.link || ''} onChange={(e) => updNested('featured', 'link', e.target.value)} placeholder="🔗 Link URL" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                  </div>
+
+                  {/* Category tiles */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>🎯 Category Tiles</h3>
+                      <button type="button" onClick={() => addArr('categories', { name: '', desc: '', href: '/article', icon: '🌸', color: '#DB2777' })} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add Tile</button>
+                    </div>
+                    <input type="text" value={mo.categoriesHead || ''} onChange={(e) => upd('categoriesHead', e.target.value)} placeholder="Section heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                    {(mo.categories || []).map((c, i) => (
+                      <div key={i} style={{ padding: '10px', background: '#F9FAFB', borderRadius: '6px', border: '1px solid #E5E7EB', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                          <span style={{ width: '22px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)' }}>{i + 1}</span>
+                          <input type="text" value={c.icon || ''} onChange={(e) => updArr('categories', i, 'icon', e.target.value)} placeholder="🌸" style={{ ...inputStyle, fontSize: '14px', padding: '5px 8px', width: '50px', textAlign: 'center' }} />
+                          <input type="text" value={c.name || ''} onChange={(e) => updArr('categories', i, 'name', e.target.value)} placeholder="Tile name" style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px', flex: 1 }} />
+                          <input type="color" value={c.color || '#DB2777'} onChange={(e) => updArr('categories', i, 'color', e.target.value)} style={{ width: '32px', height: '28px', border: '1px solid #D1D5DB', borderRadius: '4px', padding: 0, cursor: 'pointer' }} />
+                          <button type="button" onClick={() => removeArr('categories', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                        </div>
+                        <input type="text" value={c.desc || ''} onChange={(e) => updArr('categories', i, 'desc', e.target.value)} placeholder="Description" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', marginBottom: '4px' }} />
+                        <input type="text" value={c.href || ''} onChange={(e) => updArr('categories', i, 'href', e.target.value)} placeholder="🔗 Link path (/beauty)" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px' }} />
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Articles */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>📰 Lifestyle Articles</h3>
+                      <button type="button" onClick={() => addArr('articles', { title: '', time: '', cat: 'அழகு', img: '', placeholder: 'NEWS', link: '' })} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add</button>
+                    </div>
+                    <input type="text" value={mo.articlesHead || ''} onChange={(e) => upd('articlesHead', e.target.value)} placeholder="Section heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                    {(mo.articles || []).map((a, i) => (
+                      <div key={i} style={{ padding: '10px', background: '#F9FAFB', borderRadius: '6px', border: '1px solid #E5E7EB', marginBottom: '8px' }}>
+                        <div style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                          <span style={{ width: '22px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)' }}>{i + 1}</span>
+                          <input type="text" value={a.title || ''} onChange={(e) => updArr('articles', i, 'title', e.target.value)} placeholder="Article title" style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px', flex: 2 }} />
+                          <input type="text" value={a.cat || ''} onChange={(e) => updArr('articles', i, 'cat', e.target.value)} placeholder="Cat" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                          <button type="button" onClick={() => removeArr('articles', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                        </div>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <input type="text" value={a.time || ''} onChange={(e) => updArr('articles', i, 'time', e.target.value)} placeholder="Time" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                          <input type="text" value={a.link || ''} onChange={(e) => updArr('articles', i, 'link', e.target.value)} placeholder="🔗 Link" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Sidebar */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>📌 Sidebar Featured Links</h3>
+                      <button type="button" onClick={() => addArr('sidebarItems', { title: '', link: '/article' })} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add</button>
+                    </div>
+                    <input type="text" value={mo.sidebarHead || ''} onChange={(e) => upd('sidebarHead', e.target.value)} placeholder="Sidebar heading" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '10px' }} />
+                    {(mo.sidebarItems || []).map((s, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px' }}>
+                        <input type="text" value={s.title || ''} onChange={(e) => updArr('sidebarItems', i, 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '12px', padding: '5px 8px', flex: 2 }} />
+                        <input type="text" value={s.link || ''} onChange={(e) => updArr('sidebarItems', i, 'link', e.target.value)} placeholder="🔗 Link" style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1 }} />
+                        <button type="button" onClick={() => removeArr('sidebarItems', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Bottom CTA */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 12px 0', fontWeight: 700 }}>🤝 Bottom Sponsor CTA</h3>
+                    <input type="text" value={mo.bottomCta?.title || ''} onChange={(e) => updNested('bottomCta', 'title', e.target.value)} placeholder="Title" style={{ ...inputStyle, fontSize: '13px', padding: '7px 10px', marginBottom: '8px' }} />
+                    <textarea rows="2" value={mo.bottomCta?.subtitle || ''} onChange={(e) => updNested('bottomCta', 'subtitle', e.target.value)} placeholder="Subtitle" style={{ ...inputStyle, fontSize: '12px', padding: '7px 10px', resize: 'vertical', marginBottom: '8px' }} />
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <input type="text" value={mo.bottomCta?.cta || ''} onChange={(e) => updNested('bottomCta', 'cta', e.target.value)} placeholder="CTA text" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', flex: 1 }} />
+                      <input type="text" value={mo.bottomCta?.ctaHref || ''} onChange={(e) => updNested('bottomCta', 'ctaHref', e.target.value)} placeholder="CTA URL" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', flex: 2 }} />
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
+
             {/* ===== CONTACT PAGE ===== */}
             {activePage === 'contact' && (
               <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
@@ -5301,6 +5554,82 @@ export default function AdminDashboard({ onLogout }) {
                 <input type="text" defaultValue="உண்மையின் உரைவிடம்" style={inputStyle} onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)' }} onBlur={e => { e.currentTarget.style.borderColor = '#D1D5DB' }} />
               </div>
 
+              <div style={{ marginBottom: '24px', padding: '16px', background: '#FEF3F2', border: '2px solid #FCA5A5', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#991B1B', fontSize: '14px' }}>📋 RNI Number (top utility bar)</label>
+                <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#6B7280' }}>Registrar of Newspapers for India registration number — shown in the small black bar at the very top of the website.</p>
+                <input
+                  type="text"
+                  value={siteSettings.rniNumber || ''}
+                  onChange={e => {
+                    const next = { ...siteSettings, rniNumber: e.target.value };
+                    setSiteSettings(next);
+                    try {
+                      localStorage.setItem('customSiteSettings', JSON.stringify(next));
+                      notifyChange('customSiteSettings');
+                    } catch (err) { /* ignore */ }
+                  }}
+                  placeholder="RNI.No. TNTAM / 2023 / 88613"
+                  style={{ ...inputStyle, fontFamily: 'monospace', fontWeight: 600 }}
+                />
+                <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#9CA3AF' }}>Tip: leave blank to hide the RNI number entirely.</p>
+              </div>
+
+              {/* EmailJS settings for the contact form */}
+              <div style={{ marginBottom: '24px', padding: '16px', background: '#EFF6FF', border: '2px solid #93C5FD', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#1E3A8A', fontSize: '14px' }}>📧 EmailJS Settings (Contact Form)</label>
+                <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#475569' }}>
+                  When a visitor submits the contact form on <strong>/contact</strong>, EmailJS sends the message directly to your inbox.
+                  Get these credentials from <a href="https://dashboard.emailjs.com" target="_blank" rel="noopener noreferrer" style={{ color: '#1E40AF', fontWeight: 600 }}>dashboard.emailjs.com</a>.
+                </p>
+                <div style={{ display: 'grid', gap: '10px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#1E40AF', marginBottom: '4px' }}>Service ID</label>
+                    <input
+                      type="text"
+                      value={siteSettings.emailjsServiceId || ''}
+                      onChange={e => {
+                        const next = { ...siteSettings, emailjsServiceId: e.target.value };
+                        setSiteSettings(next);
+                        try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
+                      }}
+                      placeholder="service_xxxxxxx"
+                      style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '7px 10px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#1E40AF', marginBottom: '4px' }}>Template ID</label>
+                    <input
+                      type="text"
+                      value={siteSettings.emailjsTemplateId || ''}
+                      onChange={e => {
+                        const next = { ...siteSettings, emailjsTemplateId: e.target.value };
+                        setSiteSettings(next);
+                        try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
+                      }}
+                      placeholder="template_xxxxxxx"
+                      style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '7px 10px' }}
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#1E40AF', marginBottom: '4px' }}>Public Key</label>
+                    <input
+                      type="text"
+                      value={siteSettings.emailjsPublicKey || ''}
+                      onChange={e => {
+                        const next = { ...siteSettings, emailjsPublicKey: e.target.value };
+                        setSiteSettings(next);
+                        try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
+                      }}
+                      placeholder="xxxxxxxxxxxxxxxxx"
+                      style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '7px 10px' }}
+                    />
+                  </div>
+                </div>
+                <p style={{ margin: '12px 0 0 0', fontSize: '11px', color: '#64748B' }}>
+                  💡 Your template must include these variables: <code>{'{{from_name}}'}</code>, <code>{'{{from_email}}'}</code>, <code>{'{{phone}}'}</code>, <code>{'{{subject}}'}</code>, <code>{'{{message}}'}</code>, <code>{'{{reply_to}}'}</code>, <code>{'{{site_name}}'}</code>, <code>{'{{submitted_at}}'}</code>.
+                </p>
+              </div>
+
               <h3 style={{ fontSize: '18px', margin: '40px 0 24px 0', borderBottom: '1px solid #E5E7EB', paddingBottom: '16px', color: '#111827' }}>Social Links</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
@@ -5429,7 +5758,12 @@ export default function AdminDashboard({ onLogout }) {
                   if (result.ok) {
                     alert('✅ Ad Settings Saved!\n\nPushed to the shared Ads API — every browser and device will see the changes within 10 seconds.');
                   } else {
-                    alert('⚠️ Saved locally only.\n\nThe Ads API server is not reachable, so the changes are stored in this browser only. Other browsers will not see them until the server comes back online.\n\nStart the server with:\ncd server\nnpm start');
+                    const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                    if (isLocalhost) {
+                      alert('⚠️ Saved locally only.\n\nThe Ads API server is not reachable on http://localhost:5050.\n\nStart the dev server in a new terminal:\ncd server\nnpm start\n\nThen click Save Ad Settings again.');
+                    } else {
+                      alert('⚠️ Saved to this browser only.\n\nThe production Ads API backend is not deployed yet, so changes will not sync to other visitors of ' + window.location.hostname + '.\n\nTo make ads visible to everyone, the backend must be deployed on Hostinger (Node.js App) or Vercel.\n\nSee VERCEL-DEPLOY.md or GO-LIVE.md in the project root for step-by-step deployment instructions.');
+                    }
                   }
                 }}
               >
@@ -5807,8 +6141,8 @@ export default function AdminDashboard({ onLogout }) {
         }
       `}</style>
       
-      {/* SaaS Sidebar (White) */}
-      <div style={{ width: '260px', background: '#fff', display: 'flex', flexDirection: 'column', borderRight: '1px solid #E5E7EB', zIndex: 10 }}>
+      {/* SaaS Sidebar (White) — collapses to slide-out drawer on mobile */}
+      <div className="admin-sidebar" style={{ width: '260px', background: '#fff', display: 'flex', flexDirection: 'column', borderRight: '1px solid #E5E7EB', zIndex: 10 }}>
         <div style={{ padding: '20px 16px', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', gap: '10px', flexDirection: 'column' }}>
           <img src={logoSrc} alt="மறைமலை முரசு" style={{ maxWidth: '200px', width: '100%', height: 'auto', display: 'block' }} />
           <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '4px 12px', background: 'var(--accent)', borderRadius: '20px', color: '#fff', fontSize: '12px', fontWeight: '700', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
@@ -5853,14 +6187,40 @@ export default function AdminDashboard({ onLogout }) {
       </div>
 
       {/* Main Content Area */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#F9FAFB' }}>
-        
+      <div className="admin-main" style={{ flex: 1, display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden', background: '#F9FAFB' }}>
+
         {/* Top Header */}
-        <header style={{ height: '72px', background: '#fff', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px', zIndex: 5 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', width: '320px' }}>
-             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F3F4F6', padding: '10px 16px', borderRadius: '8px', flex: 1 }}>
+        <header style={{ height: '72px', background: '#fff', borderBottom: '1px solid #E5E7EB', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 24px', zIndex: 5, gap: '12px' }}>
+          {/* Mobile hamburger toggle — hidden on desktop via CSS */}
+          <button
+            type="button"
+            className="admin-mobile-toggle"
+            aria-label="Toggle sidebar"
+            onClick={() => {
+              const isOpen = document.body.classList.toggle('admin-sidebar-open');
+              if (isOpen) {
+                // Close drawer when user taps the dark overlay
+                const onOverlayClick = (e) => {
+                  if (e.target === document.body || !document.querySelector('.admin-sidebar')?.contains(e.target)) {
+                    document.body.classList.remove('admin-sidebar-open');
+                    document.removeEventListener('click', onOverlayClick, true);
+                  }
+                };
+                setTimeout(() => document.addEventListener('click', onOverlayClick, true), 0);
+              }
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <line x1="3" y1="6" x2="21" y2="6" />
+              <line x1="3" y1="12" x2="21" y2="12" />
+              <line x1="3" y1="18" x2="21" y2="18" />
+            </svg>
+          </button>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flex: '0 1 320px', minWidth: 0 }}>
+             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', background: '#F3F4F6', padding: '10px 16px', borderRadius: '8px', flex: 1, minWidth: 0 }}>
                <span style={{ color: '#9CA3AF', display: 'flex' }}><Icons.Search /></span>
-               <input type="text" placeholder="Search articles, media..." style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '14px', width: '100%', color: '#111827' }} />
+               <input type="text" placeholder="Search articles, media..." style={{ border: 'none', background: 'transparent', outline: 'none', fontSize: '14px', width: '100%', color: '#111827', minWidth: 0 }} />
              </div>
           </div>
           
