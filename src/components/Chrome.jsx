@@ -58,6 +58,13 @@ export function UtilityBar() {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const handleSubscriptionClick = (e) => {
+    e.preventDefault();
+    // Navigate to dedicated subscription (சந்தா) page
+    window.history.pushState({}, '', '/subscription');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
     <div className="utility-bar">
       <div className="utility-inner">
@@ -68,7 +75,7 @@ export function UtilityBar() {
           <span className="sep">|</span>
           <a href="#" onClick={handleEPaperClick} style={{ color: 'inherit', cursor: 'pointer' }}>இ-பேப்பர்</a>
           <span>போட்காஸ்ட்</span>
-          <span>சந்தா</span>
+          <a href="#" onClick={handleSubscriptionClick} style={{ color: 'inherit', cursor: 'pointer' }}>சந்தா</a>
           {rni && (
             <>
               <span className="sep">|</span>

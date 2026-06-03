@@ -14,6 +14,7 @@ import BeautyPage from './pages/BeautyPage.jsx';
 import CookingPage from './pages/CookingPage.jsx';
 import LawPage from './pages/LawPage.jsx';
 import EPaperPage from './pages/EPaperPage.jsx';
+import SubscriptionPage from './pages/SubscriptionPage.jsx';
 import AdminApp from './admin/AdminApp.jsx';
 import { runHomeContentMigration } from './utils/contentMigration.js';
 import { startAdSettingsPolling } from './utils/adsApi.js';
@@ -136,6 +137,7 @@ export default function App() {
              currentPath === '/more' ? <MorePage /> :
              currentPath === '/law' ? <LawPage /> :
              currentPath === '/epaper' ? <EPaperPage /> :
+             currentPath === '/subscription' ? <SubscriptionPage /> :
              currentPath === '/article' ? <ArticlePage /> :
              currentPath === '/category' ? <CategoryPage title="சட்டம் முரசு" /> :
              currentPath === '/headlines' ? <HeadlinesPage /> :

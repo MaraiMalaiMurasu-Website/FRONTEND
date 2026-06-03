@@ -2350,7 +2350,8 @@ export default function AdminDashboard({ onLogout }) {
           { id: 'cooking', label: 'Cooking · சமையல்' },
           { id: 'article', label: 'Article · கட்டுரை' },
           { id: 'epaper', label: 'ePaper · இ-பேப்பர்' },
-          { id: 'contact', label: 'Contact · தொடர்பு' }
+          { id: 'contact', label: 'Contact · தொடர்பு' },
+          { id: 'subscription', label: 'Subscription · சந்தா' }
         ];
         const page = pagesContent[activePage] || {};
 
@@ -5396,6 +5397,133 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               </div>
             )}
+
+            {/* ===== SUBSCRIPTION PAGE ===== */}
+            {activePage === 'subscription' && (() => {
+              const sub = pagesContent.subscription || {};
+              const upd = (field, val) => updatePage('subscription', field, val);
+              const updArr = (key, idx, val) => {
+                const arr = [...(sub[key] || [])];
+                arr[idx] = val;
+                upd(key, arr);
+              };
+              const addArr = (key, blank) => upd(key, [...(sub[key] || []), blank]);
+              const removeArr = (key, idx) => upd(key, (sub[key] || []).filter((_, i) => i !== idx));
+
+              return (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                  {/* Hero / Top Banner */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '2px solid var(--accent)' }}>
+                    <h3 style={{ fontSize: '18px', margin: '0 0 16px 0', color: 'var(--accent)', fontWeight: 800 }}>🎯 Hero Banner — Top Section</h3>
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Kicker (italic line above title)</label>
+                    <input type="text" value={sub.kicker || ''} onChange={(e) => upd('kicker', e.target.value)} placeholder="வாரந்தோறும்... வாசல் தோறும்..." style={{ ...inputStyle, fontSize: '14px', marginBottom: '12px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Main Title</label>
+                    <input type="text" value={sub.title || ''} onChange={(e) => upd('title', e.target.value)} placeholder="மறைமலை முரசு!" style={{ ...inputStyle, fontSize: '16px', fontWeight: 700, marginBottom: '12px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Subtitle (shown in pill)</label>
+                    <input type="text" value={sub.subtitle || ''} onChange={(e) => upd('subtitle', e.target.value)} placeholder="தமிழ் வார இதழ்" style={{ ...inputStyle, fontSize: '13px' }} />
+                  </div>
+
+                  {/* Pricing Cards */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', fontWeight: 700 }}>💰 Pricing — Two Cards</h3>
+
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                      <div style={{ padding: '14px', background: '#F9FAFB', borderRadius: '8px', border: '1px solid #E5E7EB' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: '#6B7280', marginBottom: '8px' }}>📰 Single Issue</div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#374151' }}>Label</label>
+                        <input type="text" value={sub.singlePriceLabel || ''} onChange={(e) => upd('singlePriceLabel', e.target.value)} placeholder="தனி மலர் விலை" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#374151' }}>Price</label>
+                        <input type="text" value={sub.singlePrice || ''} onChange={(e) => upd('singlePrice', e.target.value)} placeholder="ரூ. 5/-" style={{ ...inputStyle, fontSize: '13px', padding: '6px 10px', fontWeight: 700 }} />
+                      </div>
+
+                      <div style={{ padding: '14px', background: '#FEF2F2', borderRadius: '8px', border: '2px solid var(--accent)' }}>
+                        <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--accent)', marginBottom: '8px' }}>⭐ Yearly Subscription (Featured)</div>
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#374151' }}>Label</label>
+                        <input type="text" value={sub.yearlyLabel || ''} onChange={(e) => upd('yearlyLabel', e.target.value)} placeholder="ஆண்டு சந்தா" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', marginBottom: '8px' }} />
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#374151' }}>Price</label>
+                        <input type="text" value={sub.yearlyPrice || ''} onChange={(e) => upd('yearlyPrice', e.target.value)} placeholder="ரூ. 260/-" style={{ ...inputStyle, fontSize: '13px', padding: '6px 10px', fontWeight: 700, marginBottom: '8px' }} />
+                        <label style={{ display: 'block', marginBottom: '4px', fontSize: '11px', fontWeight: 600, color: '#374151' }}>Note (italic below price)</label>
+                        <input type="text" value={sub.yearlyNote || ''} onChange={(e) => upd('yearlyNote', e.target.value)} placeholder="மட்டுமே!" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }} />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Delivery Description */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', fontWeight: 700 }}>📬 Delivery Highlight Box</h3>
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Headline (red text)</label>
+                    <input type="text" value={sub.deliveryHeadline || ''} onChange={(e) => upd('deliveryHeadline', e.target.value)} placeholder="தபால் மூலம் உங்கள் இல்லம் தேடி வருகிறது!" style={{ ...inputStyle, fontSize: '14px', fontWeight: 700, marginBottom: '12px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Description Paragraph</label>
+                    <textarea rows="5" value={sub.deliveryDesc || ''} onChange={(e) => upd('deliveryDesc', e.target.value)} placeholder="துல்லியமான செய்திகள், நேர்மையான..." style={{ ...inputStyle, resize: 'vertical', fontSize: '13px' }} />
+                  </div>
+
+                  {/* Benefits */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px' }}>
+                      <h3 style={{ fontSize: '17px', margin: 0, fontWeight: 700 }}>✅ Benefits / Features</h3>
+                      <button type="button" onClick={() => addArr('benefits', 'புதிய சிறப்பு அம்சம்')} style={{ padding: '6px 12px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '5px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}>+ Add Benefit</button>
+                    </div>
+                    {(sub.benefits || []).map((b, i) => (
+                      <div key={i} style={{ display: 'flex', gap: '6px', marginBottom: '6px', alignItems: 'center' }}>
+                        <span style={{ width: '24px', textAlign: 'center', fontWeight: 700, color: 'var(--accent)' }}>{i + 1}</span>
+                        <input type="text" value={b || ''} onChange={(e) => updArr('benefits', i, e.target.value)} placeholder="Benefit text" style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px', flex: 1 }} />
+                        <button type="button" onClick={() => removeArr('benefits', i)} style={{ background: '#FEF2F2', border: 'none', color: '#EF4444', cursor: 'pointer', fontSize: '11px', padding: '4px 9px', borderRadius: '4px', fontWeight: 700 }}>✕</button>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* GPay Section */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '2px dashed var(--accent)' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', color: 'var(--accent)', fontWeight: 700 }}>📱 GPay / UPI Payment Number</h3>
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Label (above number)</label>
+                    <input type="text" value={sub.gpayLabel || ''} onChange={(e) => upd('gpayLabel', e.target.value)} placeholder="சந்தா செலுத்த வேண்டிய GPay எண்" style={{ ...inputStyle, fontSize: '13px', marginBottom: '12px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>GPay Number (large display)</label>
+                    <input type="text" value={sub.gpayNumber || ''} onChange={(e) => upd('gpayNumber', e.target.value)} placeholder="72000 73980" style={{ ...inputStyle, fontSize: '20px', fontWeight: 700, padding: '12px', letterSpacing: '0.05em' }} />
+                  </div>
+
+                  {/* Address */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', fontWeight: 700 }}>📍 Office Address Card</h3>
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Card Heading</label>
+                    <input type="text" value={sub.addressLabel || ''} onChange={(e) => upd('addressLabel', e.target.value)} placeholder="தொடர்பு மற்றும் இதழ் முகவரி" style={{ ...inputStyle, fontSize: '13px', marginBottom: '12px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Centre Name (bold first line)</label>
+                    <input type="text" value={sub.addressName || ''} onChange={(e) => upd('addressName', e.target.value)} placeholder="மறைமலை நகர் இ-சேவை மையம்," style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px', fontWeight: 600 }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Address Line 1</label>
+                    <input type="text" value={sub.addressLine1 || ''} onChange={(e) => upd('addressLine1', e.target.value)} placeholder="எண்: 112, எல்.ஐ.சி (LIG), NH-1," style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Address Line 2</label>
+                    <input type="text" value={sub.addressLine2 || ''} onChange={(e) => upd('addressLine2', e.target.value)} placeholder="டாக்டர் அம்பேத்கர் தெரு," style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Address Line 3</label>
+                    <input type="text" value={sub.addressLine3 || ''} onChange={(e) => upd('addressLine3', e.target.value)} placeholder="மறைமலை நகர்," style={{ ...inputStyle, fontSize: '13px', marginBottom: '8px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Address Line 4 (Pincode — shown in red)</label>
+                    <input type="text" value={sub.addressLine4 || ''} onChange={(e) => upd('addressLine4', e.target.value)} placeholder="செங்கல்பட்டு மாவட்டம் - 603209." style={{ ...inputStyle, fontSize: '13px', fontWeight: 700 }} />
+                  </div>
+
+                  {/* Phone Card */}
+                  <div style={{ background: '#fff', padding: '24px', borderRadius: '16px', border: '1px solid #E5E7EB' }}>
+                    <h3 style={{ fontSize: '17px', margin: '0 0 16px 0', fontWeight: 700 }}>📞 Phone Card</h3>
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Card Heading</label>
+                    <input type="text" value={sub.phoneLabel || ''} onChange={(e) => upd('phoneLabel', e.target.value)} placeholder="அலைபேசி எண்" style={{ ...inputStyle, fontSize: '13px', marginBottom: '12px' }} />
+
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#374151' }}>Phone Number (clickable on mobile)</label>
+                    <input type="text" value={sub.phoneNumber || ''} onChange={(e) => upd('phoneNumber', e.target.value)} placeholder="94441 12294" style={{ ...inputStyle, fontSize: '18px', fontWeight: 700, padding: '10px 12px', letterSpacing: '0.03em' }} />
+                  </div>
+                </div>
+              );
+            })()}
 
             <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end' }}>
               <button onClick={handleSavePages} style={{ padding: '12px 32px', background: 'var(--accent)', color: '#fff', border: 'none', borderRadius: '8px', fontWeight: '600', cursor: 'pointer', fontSize: '15px', boxShadow: '0 4px 12px rgba(200, 16, 46, 0.2)' }}>💾 Save All Page Content</button>
