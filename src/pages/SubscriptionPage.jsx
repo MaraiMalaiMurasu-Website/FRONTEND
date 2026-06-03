@@ -1,5 +1,6 @@
 import React from 'react';
 import { usePageContent } from '../utils/pageContent.js';
+import { useT } from '../utils/i18n.js';
 
 // ─── SVG icons ───────────────────────────────────────────────────────────
 const SVG_PHONE = (
@@ -32,6 +33,7 @@ const SVG_CHECK = (
 );
 
 export default function SubscriptionPage() {
+  const t = useT();
   const pc = usePageContent('subscription', {
     kicker: 'வாரந்தோறும்... வாசல் தோறும்...',
     title: 'மறைமலை முரசு!',
@@ -63,17 +65,17 @@ export default function SubscriptionPage() {
 
   return (
     <div className="subscription-page" style={{ background: 'var(--bg)', minHeight: '100vh', padding: '32px 16px' }}>
-      <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      <div className="subscription-inner" style={{ maxWidth: '1100px', margin: '0 auto' }}>
 
         {/* ── Breadcrumb ──────────────────────────────────────── */}
-        <div style={{ fontSize: '13px', color: 'var(--ink-3)', marginBottom: '24px' }}>
-          <a href="/" style={{ color: 'var(--ink-3)', textDecoration: 'none' }}>முகப்பு</a>
+        <div className="sub-breadcrumb" style={{ fontSize: '13px', color: 'var(--ink-3)', marginBottom: '24px' }}>
+          <a href="/" style={{ color: 'var(--ink-3)', textDecoration: 'none' }}>{t('breadcrumbHome')}</a>
           <span style={{ margin: '0 8px' }}>›</span>
-          <span style={{ color: 'var(--accent)', fontWeight: 600 }}>சந்தா</span>
+          <span style={{ color: 'var(--accent)', fontWeight: 600 }}>{t('subscription')}</span>
         </div>
 
         {/* ── Hero Banner ─────────────────────────────────────── */}
-        <div style={{
+        <div className="sub-hero" style={{
           background: 'linear-gradient(135deg, var(--accent) 0%, #8B0000 100%)',
           color: '#fff',
           padding: '48px 32px',
@@ -140,7 +142,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* ── Pricing Cards ───────────────────────────────────── */}
-        <div style={{
+        <div className="sub-pricing-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
           gap: '20px',
@@ -199,7 +201,7 @@ export default function SubscriptionPage() {
               fontWeight: 700,
               letterSpacing: '0.08em'
             }}>
-              ★ சிறந்த தேர்வு
+              {t('subBestChoice')}
             </div>
             <div style={{
               fontSize: '14px',
@@ -233,7 +235,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* ── Delivery Description ─────────────────────────────── */}
-        <div style={{
+        <div className="sub-delivery-box" style={{
           background: '#FFF8E7',
           border: '1px solid #F4D77F',
           borderLeft: '4px solid var(--accent)',
@@ -261,7 +263,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* ── Benefits Grid ────────────────────────────────────── */}
-        <div style={{
+        <div className="sub-benefits-box" style={{
           background: '#fff',
           border: '1px solid var(--rule)',
           borderRadius: '12px',
@@ -277,7 +279,7 @@ export default function SubscriptionPage() {
             paddingBottom: '10px',
             display: 'inline-block'
           }}>
-            சிறப்பு அம்சங்கள்
+            {t('subFeatures')}
           </h3>
           <div style={{
             display: 'grid',
@@ -320,7 +322,7 @@ export default function SubscriptionPage() {
         </div>
 
         {/* ── GPay Number — Highlighted ────────────────────────── */}
-        <div style={{
+        <div className="sub-gpay-box" style={{
           background: 'linear-gradient(135deg, #FFF 0%, #FFF8F8 100%)',
           border: '2px dashed var(--accent)',
           borderRadius: '14px',
@@ -363,12 +365,12 @@ export default function SubscriptionPage() {
             color: 'var(--ink-3)',
             fontStyle: 'italic'
           }}>
-            GPay / PhonePe / Paytm — அனைத்து UPI செயலிகளிலும் பணம் செலுத்தலாம்
+            {t('subUpiNote')}
           </div>
         </div>
 
         {/* ── Contact Information ──────────────────────────────── */}
-        <div style={{
+        <div className="sub-contact-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
           gap: '20px',
@@ -446,13 +448,13 @@ export default function SubscriptionPage() {
               fontSize: '13px',
               color: 'var(--ink-3)'
             }}>
-              திங்கள் – சனி · காலை 9:00 – மாலை 6:00
+              {t('subWorkingHours')}
             </div>
           </div>
         </div>
 
         {/* ── Call to Action ──────────────────────────────────── */}
-        <div style={{
+        <div className="sub-cta-panel" style={{
           background: 'var(--ink)',
           color: '#fff',
           padding: '36px 24px',
@@ -466,7 +468,7 @@ export default function SubscriptionPage() {
             fontWeight: 700,
             fontFamily: 'var(--serif, serif)'
           }}>
-            இன்றே ஆண்டு சந்தாதாரராகுங்கள்!
+            {t('subCtaTitle')}
           </h3>
           <p style={{
             fontSize: '15px',
@@ -474,7 +476,7 @@ export default function SubscriptionPage() {
             margin: '0 0 20px 0',
             lineHeight: 1.6
           }}>
-            வாரந்தோறும் மறைமலை முரசை உங்கள் இல்லத்தில் பெறுங்கள் — ஆண்டுக்கு வெறும் ரூ. 260/- மட்டுமே
+            {t('subCtaDesc')}
           </p>
           <a
             href={`tel:+91${pc.phoneNumber.replace(/\s/g, '')}`}
@@ -491,7 +493,7 @@ export default function SubscriptionPage() {
               boxShadow: '0 4px 14px rgba(200, 16, 46, 0.4)'
             }}
           >
-            📞 இப்போதே அழைக்கவும்
+            {t('subCallNow')}
           </a>
         </div>
 
