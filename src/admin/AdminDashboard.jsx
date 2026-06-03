@@ -1451,10 +1451,9 @@ export default function AdminDashboard({ onLogout }) {
       section1Title: 'தேர்தல் கள விசாரணை',
       section2Title: 'வெள்ளித் திரை · சமையல்',
       rniNumber: 'RNI.No. TNTAM / 2023 / 88613',
-      // EmailJS — contact form email service (used by ContactPage)
-      emailjsServiceId:  'service_55wwent',
-      emailjsTemplateId: 'template_3ww2af7',
-      emailjsPublicKey:  '3syQjW5hMw_zi4QWn'
+      // Web3Forms — contact form email service (used by ContactPage)
+      // Get a free access key at https://web3forms.com
+      web3formsAccessKey: 'ea9499ec-45fd-4a85-8fe3-04eb6ba89e0f'
     };
   });
 
@@ -5702,59 +5701,29 @@ export default function AdminDashboard({ onLogout }) {
                 <p style={{ margin: '8px 0 0 0', fontSize: '11px', color: '#9CA3AF' }}>Tip: leave blank to hide the RNI number entirely.</p>
               </div>
 
-              {/* EmailJS settings for the contact form */}
-              <div style={{ marginBottom: '24px', padding: '16px', background: '#EFF6FF', border: '2px solid #93C5FD', borderRadius: '10px' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#1E3A8A', fontSize: '14px' }}>📧 EmailJS Settings (Contact Form)</label>
+              {/* Web3Forms settings for the contact form */}
+              <div style={{ marginBottom: '24px', padding: '16px', background: '#ECFDF5', border: '2px solid #6EE7B7', borderRadius: '10px' }}>
+                <label style={{ display: 'block', marginBottom: '8px', fontWeight: '700', color: '#065F46', fontSize: '14px' }}>📧 Web3Forms — Contact Form Backend</label>
                 <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#475569' }}>
-                  When a visitor submits the contact form on <strong>/contact</strong>, EmailJS sends the message directly to your inbox.
-                  Get these credentials from <a href="https://dashboard.emailjs.com" target="_blank" rel="noopener noreferrer" style={{ color: '#1E40AF', fontWeight: 600 }}>dashboard.emailjs.com</a>.
+                  When a visitor submits the contact form on <strong>/contact</strong>, Web3Forms forwards the message to your registered inbox — no backend required.
+                  Get a free access key (250 submissions/month) at <a href="https://web3forms.com" target="_blank" rel="noopener noreferrer" style={{ color: '#047857', fontWeight: 600 }}>web3forms.com</a>.
                 </p>
-                <div style={{ display: 'grid', gap: '10px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#1E40AF', marginBottom: '4px' }}>Service ID</label>
-                    <input
-                      type="text"
-                      value={siteSettings.emailjsServiceId || ''}
-                      onChange={e => {
-                        const next = { ...siteSettings, emailjsServiceId: e.target.value };
-                        setSiteSettings(next);
-                        try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
-                      }}
-                      placeholder="service_xxxxxxx"
-                      style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '7px 10px' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#1E40AF', marginBottom: '4px' }}>Template ID</label>
-                    <input
-                      type="text"
-                      value={siteSettings.emailjsTemplateId || ''}
-                      onChange={e => {
-                        const next = { ...siteSettings, emailjsTemplateId: e.target.value };
-                        setSiteSettings(next);
-                        try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
-                      }}
-                      placeholder="template_xxxxxxx"
-                      style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '7px 10px' }}
-                    />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#1E40AF', marginBottom: '4px' }}>Public Key</label>
-                    <input
-                      type="text"
-                      value={siteSettings.emailjsPublicKey || ''}
-                      onChange={e => {
-                        const next = { ...siteSettings, emailjsPublicKey: e.target.value };
-                        setSiteSettings(next);
-                        try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
-                      }}
-                      placeholder="xxxxxxxxxxxxxxxxx"
-                      style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '7px 10px' }}
-                    />
-                  </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#047857', marginBottom: '4px' }}>Access Key</label>
+                  <input
+                    type="text"
+                    value={siteSettings.web3formsAccessKey || ''}
+                    onChange={e => {
+                      const next = { ...siteSettings, web3formsAccessKey: e.target.value };
+                      setSiteSettings(next);
+                      try { localStorage.setItem('customSiteSettings', JSON.stringify(next)); notifyChange('customSiteSettings'); } catch (err) {}
+                    }}
+                    placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+                    style={{ ...inputStyle, fontFamily: 'monospace', fontSize: '13px', padding: '8px 10px', letterSpacing: '0.02em' }}
+                  />
                 </div>
                 <p style={{ margin: '12px 0 0 0', fontSize: '11px', color: '#64748B' }}>
-                  💡 Your template must include these variables: <code>{'{{from_name}}'}</code>, <code>{'{{from_email}}'}</code>, <code>{'{{phone}}'}</code>, <code>{'{{subject}}'}</code>, <code>{'{{message}}'}</code>, <code>{'{{reply_to}}'}</code>, <code>{'{{site_name}}'}</code>, <code>{'{{submitted_at}}'}</code>.
+                  💡 The form sends these fields to your inbox: <code>name</code>, <code>email</code>, <code>phone</code>, <code>enquiry_type</code>, <code>message</code>, plus metadata (<code>site_name</code>, <code>submitted_at</code>, <code>source</code>). Configure the recipient email at web3forms.com → My Forms.
                 </p>
               </div>
 

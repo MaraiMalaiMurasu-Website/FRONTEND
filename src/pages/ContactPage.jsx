@@ -1,36 +1,31 @@
 import React, { useState, useEffect } from 'react';
-import emailjs from '@emailjs/browser';
 import { AdSlot } from '../components/Ads.jsx';
 import { usePageContent } from '../utils/pageContent.js';
 
-// ── EmailJS configuration ───────────────────────────────────────────────
-// These default values can be overridden via:
-//   1. Vite env vars (.env.production):  VITE_EMAILJS_SERVICE_ID etc.
-//   2. Admin Site Settings → "EmailJS Settings" (saved to localStorage)
+// ── Web3Forms configuration ─────────────────────────────────────────────
+// Access key from https://web3forms.com — free, no backend required.
+// Can be overridden via:
+//   1. Vite env var (.env.production):  VITE_WEB3FORMS_ACCESS_KEY
+//   2. Admin Site Settings → "Web3Forms Access Key" (saved to localStorage)
 // Order of precedence: localStorage → env var → hardcoded default below.
-const EMAILJS_DEFAULTS = {
-  serviceId:  'service_55wwent',
-  templateId: 'template_3ww2af7',
-  publicKey:  '3syQjW5hMw_zi4QWn',
-};
+const WEB3FORMS_DEFAULT_KEY = 'ea9499ec-45fd-4a85-8fe3-04eb6ba89e0f';
+const WEB3FORMS_ENDPOINT    = 'https://api.web3forms.com/submit';
 
-function getEmailJsConfig() {
-  let cfg = { ...EMAILJS_DEFAULTS };
-  // 1. Env var overrides
-  if (import.meta.env.VITE_EMAILJS_SERVICE_ID)  cfg.serviceId  = import.meta.env.VITE_EMAILJS_SERVICE_ID;
-  if (import.meta.env.VITE_EMAILJS_TEMPLATE_ID) cfg.templateId = import.meta.env.VITE_EMAILJS_TEMPLATE_ID;
-  if (import.meta.env.VITE_EMAILJS_PUBLIC_KEY)  cfg.publicKey  = import.meta.env.VITE_EMAILJS_PUBLIC_KEY;
-  // 2. localStorage overrides (admin can change these without rebuilding)
+function getWeb3FormsKey() {
+  // 1. localStorage override (admin can change without rebuilding)
   try {
     const saved = localStorage.getItem('customSiteSettings');
     if (saved) {
       const s = JSON.parse(saved);
-      if (s.emailjsServiceId)  cfg.serviceId  = s.emailjsServiceId;
-      if (s.emailjsTemplateId) cfg.templateId = s.emailjsTemplateId;
-      if (s.emailjsPublicKey)  cfg.publicKey  = s.emailjsPublicKey;
+      if (s.web3formsAccessKey && typeof s.web3formsAccessKey === 'string' && s.web3formsAccessKey.trim()) {
+        return s.web3formsAccessKey.trim();
+      }
     }
   } catch (e) { /* ignore */ }
-  return cfg;
+  // 2. Build-time env var override
+  if (import.meta.env.VITE_WEB3FORMS_ACCESS_KEY) return import.meta.env.VITE_WEB3FORMS_ACCESS_KEY;
+  // 3. Hardcoded default
+  return WEB3FORMS_DEFAULT_KEY;
 }
 
 const SVG_LOCATION = <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>;
@@ -73,15 +68,6 @@ export default function ContactPage() {
 
   const updateField = (field, value) => setForm(f => ({ ...f, [field]: value }));
 
-  // Initialize EmailJS once on mount
-  useEffect(() => {
-    const cfg = getEmailJsConfig();
-    if (cfg.publicKey) {
-      try { emailjs.init({ publicKey: cfg.publicKey }); }
-      catch (e) { console.warn('EmailJS init failed:', e); }
-    }
-  }, []);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (status.state === 'sending') return;
@@ -97,34 +83,41 @@ export default function ContactPage() {
 
     setStatus({ state: 'sending', message: 'அனுப்பப்படுகிறது…' });
 
-    const cfg = getEmailJsConfig();
-
-    // ── Template variables ──────────────────────────────────────────────
-    // These keys match the variables expected by your EmailJS template.
-    // The template_3ww2af7 should reference: {{from_name}}, {{from_email}},
-    // {{phone}}, {{subject}}, {{message}}, {{reply_to}}, {{site_name}}.
-    // If your template uses different names, edit the keys below to match.
-    const templateParams = {
-      from_name:    form.name.trim(),
-      from_email:   form.email.trim(),
-      reply_to:     form.email.trim(),
+    // ── Web3Forms payload ───────────────────────────────────────────────
+    // Reference: https://docs.web3forms.com/
+    // The `access_key` authenticates the form. Add `subject` (overrides default
+    // dashboard subject) and `from_name` (display name shown in inbox).
+    const payload = {
+      access_key:   getWeb3FormsKey(),
+      subject:      `[மறைமலை முரசு] ${form.subject} — ${form.name.trim()}`,
+      from_name:    `${form.name.trim()} (மறைமலை முரசு website)`,
+      // Form fields
+      name:         form.name.trim(),
+      email:        form.email.trim(),
       phone:        form.phone.trim() || '—',
-      subject:      form.subject,
       message:      form.message.trim(),
+      enquiry_type: form.subject,
+      // Metadata
       site_name:    'மறைமலை முரசு',
       submitted_at: new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) + ' IST',
       source:       'contact-page-form',
+      // Spam protection (Web3Forms built-in honeypot)
+      botcheck:     '',
     };
 
     try {
-      const result = await emailjs.send(
-        cfg.serviceId,
-        cfg.templateId,
-        templateParams,
-        { publicKey: cfg.publicKey }
-      );
+      const res = await fetch(WEB3FORMS_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept':       'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
 
-      if (result && (result.status === 200 || result.text === 'OK')) {
+      const data = await res.json().catch(() => ({}));
+
+      if (res.ok && data && data.success) {
         setStatus({
           state: 'sent',
           message: 'நன்றி! உங்கள் செய்தி வெற்றிகரமாக அனுப்பப்பட்டது. விரைவில் பதிலளிக்கப்படும்.',
@@ -132,11 +125,11 @@ export default function ContactPage() {
         // Reset form
         setForm({ name: '', email: '', phone: '', subject: 'எடிட்டோரியல் / செய்தி டிப்', message: '', agree: false });
       } else {
-        throw new Error('EmailJS returned status ' + (result?.status || 'unknown'));
+        throw new Error((data && data.message) || `Web3Forms returned HTTP ${res.status}`);
       }
     } catch (err) {
-      console.error('EmailJS submit failed', err);
-      const errMsg = err?.text || err?.message || 'பின்னர் முயற்சிக்கவும்.';
+      console.error('Web3Forms submit failed', err);
+      const errMsg = err?.message || 'பின்னர் முயற்சிக்கவும்.';
       setStatus({ state: 'error', message: 'தோல்வி: ' + errMsg });
     }
   };
