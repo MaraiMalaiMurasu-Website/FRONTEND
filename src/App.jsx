@@ -15,6 +15,7 @@ import CookingPage from './pages/CookingPage.jsx';
 import LawPage from './pages/LawPage.jsx';
 import EPaperPage from './pages/EPaperPage.jsx';
 import SubscriptionPage from './pages/SubscriptionPage.jsx';
+import { CustomBannerStrip } from './components/CustomBanners.jsx';
 import AdminApp from './admin/AdminApp.jsx';
 import { runHomeContentMigration } from './utils/contentMigration.js';
 import { startAdSettingsPolling } from './utils/adsApi.js';
@@ -119,6 +120,12 @@ export default function App() {
           or one of its children (/astrology, /beauty, /cooking) */}
       <SubNav currentPath={currentPath} />
       <Ticker />
+
+      {/* Custom banners managed from /admin → Ad Manager → My Custom Banners.
+          Auto-detects the current page and shows banners assigned to it. */}
+      <div className="container" style={{ marginTop: '12px' }}>
+        <CustomBannerStrip />
+      </div>
 
 
       {currentPath === '/contact' ? (
