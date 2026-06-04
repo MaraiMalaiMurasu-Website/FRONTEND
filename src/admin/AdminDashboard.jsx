@@ -6107,17 +6107,18 @@ export default function AdminDashboard({ onLogout }) {
                                   </div>
                                 </div>
 
-                                {/* Row 3: link + upload + media picker */}
+                                {/* Row 3: 🖼 Image URL + upload + media picker */}
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', minWidth: '70px' }}>🖼 Image:</span>
                                   <input
                                     type="text"
-                                    placeholder="Target link URL (https://...)"
-                                    value={b.link || ''}
-                                    onChange={e => updateBanner(i, 'link', e.target.value)}
+                                    placeholder="Paste image URL (Google Drive / Imgur / direct .png)"
+                                    value={b.image && !b.image.startsWith('data:') ? b.image : ''}
+                                    onChange={e => updateBanner(i, 'image', e.target.value)}
                                     style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
                                   />
                                   <label style={{ padding: '5px 10px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
-                                    {b.image ? '↻ Replace Image' : '+ Upload Image'}
+                                    {b.image ? '↻ Replace' : '+ Upload'}
                                     <input
                                       type="file"
                                       accept="image/*"
@@ -6139,6 +6140,18 @@ export default function AdminDashboard({ onLogout }) {
                                   >
                                     📁
                                   </button>
+                                </div>
+
+                                {/* Row 3b: 🔗 Target link (where clicks go) */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#3730A3', minWidth: '70px' }}>🔗 Link:</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Target link (where clicks go) — optional"
+                                    value={b.link || ''}
+                                    onChange={e => updateBanner(i, 'link', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
+                                  />
                                 </div>
 
                                 {/* Row 4: video + fit + bg + clear content */}
@@ -6336,17 +6349,18 @@ export default function AdminDashboard({ onLogout }) {
                                   {hasVideo && <span style={{ fontSize: '10px', padding: '2px 6px', background: '#7C3AED', color: '#fff', borderRadius: '3px', fontWeight: '700' }}>▶ VIDEO</span>}
                                 </div>
 
-                                {/* Row 1 — link URL + image upload + media picker */}
+                                {/* Row 1 — 🖼 IMAGE URL (paste Google Drive / Imgur etc) */}
                                 <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#059669', minWidth: '70px' }}>🖼 Image:</span>
                                   <input
                                     type="text"
-                                    placeholder="Target link URL (https://...)"
-                                    value={config.link || ''}
-                                    onChange={(e) => updateSlot(slot.id, 'link', e.target.value)}
-                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '200px' }}
+                                    placeholder="Paste image URL (Google Drive / Imgur / direct .png) — or upload below"
+                                    value={config.image && !config.image.startsWith('data:') ? config.image : ''}
+                                    onChange={(e) => updateSlot(slot.id, 'image', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
                                   />
                                   <label style={{ padding: '5px 10px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
-                                    {hasImage ? '↻ Replace Image' : '+ Upload Image'}
+                                    {hasImage ? '↻ Replace' : '+ Upload'}
                                     <input
                                       type="file"
                                       accept="image/*"
@@ -6370,6 +6384,18 @@ export default function AdminDashboard({ onLogout }) {
                                   >
                                     📁
                                   </button>
+                                </div>
+
+                                {/* Row 2 — 🔗 TARGET LINK (where clicks go) */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#3730A3', minWidth: '70px' }}>🔗 Link:</span>
+                                  <input
+                                    type="text"
+                                    placeholder="Where the ad goes when clicked (https://...)"
+                                    value={config.link || ''}
+                                    onChange={(e) => updateSlot(slot.id, 'link', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
+                                  />
                                 </div>
 
                                 {/* Row 2 — video URL + fit dropdown + bg color + remove */}
