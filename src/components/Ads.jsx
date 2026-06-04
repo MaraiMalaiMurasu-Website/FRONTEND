@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getYouTubeId } from './VideoPlayer.jsx';
+import { normalizeImageUrl } from '../utils/imageUrl.js';
 
 // Ad slot system — reusable placeholders for Google Ads, Meta Audience Network,
 // and direct sponsor slots.
@@ -134,7 +135,9 @@ export function AdSlot({ network = "google", size = "728x90", slotId = "", note 
     const perSlot = settings.houseAds && settings.houseAds[slotId];
     if (perSlot && (perSlot.image || perSlot.video)) {
       displayNetwork = "house";
-      displayCreative = perSlot.image || null;
+      // normalizeImageUrl auto-converts Google Drive / Dropbox / Imgur / GitHub
+      // share URLs into direct image URLs so they render correctly.
+      displayCreative = perSlot.image ? normalizeImageUrl(perSlot.image) : null;
       displayVideo = perSlot.video || null;
       // fit: cover | contain | natural — default is cover for backward compat
       if (perSlot.fit === 'contain') displayFit = 'contain';
@@ -147,7 +150,7 @@ export function AdSlot({ network = "google", size = "728x90", slotId = "", note 
     // Priority 2: Legacy single-ad override (matched by size)
     else if (settings.houseImageUrl && settings.houseLocation && settings.houseLocation.includes(size)) {
       displayNetwork = "house";
-      displayCreative = settings.houseImageUrl;
+      displayCreative = normalizeImageUrl(settings.houseImageUrl);
       displayHref = settings.houseLink || "#";
       displaySlotId = "My Active Ad";
     }

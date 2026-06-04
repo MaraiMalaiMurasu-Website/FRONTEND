@@ -15,6 +15,7 @@
 */
 
 import React, { useState, useEffect } from 'react';
+import { normalizeImageUrl } from '../utils/imageUrl.js';
 
 // Map URL pathnames to the page labels used in admin
 function pathnameToPageLabel(pathname) {
@@ -138,15 +139,17 @@ function BannerMedia({ banner }) {
 
   // Image
   if (banner.image) {
+    // Auto-convert Google Drive / Dropbox / Imgur / GitHub share URLs to direct URLs
+    const src = normalizeImageUrl(banner.image);
     if (fit === 'natural') {
-      return <img src={banner.image} alt={banner.label || 'Banner'} style={naturalStyle} />;
+      return <img src={src} alt={banner.label || 'Banner'} style={naturalStyle} />;
     }
     return (
       <div
         style={{
           width: '100%',
           height: '100%',
-          background: `${bg} url(${banner.image}) center/${fit} no-repeat`,
+          background: `${bg} url(${src}) center/${fit} no-repeat`,
         }}
         role="img"
         aria-label={banner.label || 'Banner'}

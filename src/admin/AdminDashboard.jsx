@@ -23,6 +23,29 @@ const Icons = {
 // Connection status badge for the Ad Manager — polls the shared Ads API
 // every 15 seconds and shows whether it's reachable. Green = ads sync across
 // all browsers; red = saving locally only.
+// Auto-convert Google Drive / Dropbox / Imgur share URLs to direct image URLs
+// so admin previews and saved images render correctly. Shared with the
+// frontend's normalizeImageUrl in src/utils/imageUrl.js (re-imported below
+// to avoid coupling the admin to changes there).
+function normalizeImageUrlAdmin(url) {
+  if (!url || typeof url !== 'string') return url;
+  const t = url.trim();
+  if (!t || t.startsWith('data:') || t.startsWith('/') || t.startsWith('blob:')) return t;
+  // Google Drive
+  const gd = t.match(/drive\.google\.com\/file\/d\/([a-zA-Z0-9_-]{15,})/);
+  if (gd) return `https://lh3.googleusercontent.com/d/${gd[1]}=w2000`;
+  const gd2 = t.match(/drive\.google\.com\/(?:open|uc)\?(?:[^&]*&)*id=([a-zA-Z0-9_-]{15,})/);
+  if (gd2) return `https://lh3.googleusercontent.com/d/${gd2[1]}=w2000`;
+  // Dropbox
+  if (/dropbox\.com\/(?:s|scl)\//.test(t)) {
+    return t.replace(/[?&]dl=\d/, '').replace(/\?$|&$/, '') + (t.includes('?') ? '&raw=1' : '?raw=1');
+  }
+  // GitHub
+  const gh = t.match(/^https?:\/\/github\.com\/([^/]+\/[^/]+)\/blob\/(.+)$/);
+  if (gh) return `https://raw.githubusercontent.com/${gh[1]}/${gh[2]}`;
+  return t;
+}
+
 function AdsApiStatus() {
   const [status, setStatus] = useState({ online: null, ts: null });
   useEffect(() => {
@@ -5946,7 +5969,7 @@ export default function AdminDashboard({ onLogout }) {
                   
                   {/* Live Preview Box */}
                   <div style={{ width: '250px', background: '#F9FAFB', border: '1px dashed #D1D5DB', borderRadius: '12px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '20px', textAlign: 'center' }}>
-                    <div style={{ width: '100%', height: '80px', background: adSettings.houseImageUrl ? `url(${adSettings.houseImageUrl}) center/cover no-repeat` : '#E5E7EB', borderRadius: '4px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', fontSize: '12px', fontWeight: '600', boxShadow: adSettings.houseImageUrl ? '0 2px 4px rgba(0,0,0,0.1)' : 'none' }}>
+                    <div style={{ width: '100%', height: '80px', background: adSettings.houseImageUrl ? `url(${normalizeImageUrlAdmin(adSettings.houseImageUrl)}) center/cover no-repeat` : '#E5E7EB', borderRadius: '4px', marginBottom: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#9CA3AF', fontSize: '12px', fontWeight: '600', boxShadow: adSettings.houseImageUrl ? '0 2px 4px rgba(0,0,0,0.1)' : 'none' }}>
                       {!adSettings.houseImageUrl && '728 x 90'}
                     </div>
                     <span style={{ fontSize: '13px', color: '#6B7280', fontWeight: '500' }}>Live Ad Preview</span>
@@ -6033,7 +6056,7 @@ export default function AdminDashboard({ onLogout }) {
                                 flex: '0 0 120px',
                                 height: '70px',
                                 background: b.image
-                                  ? `${bg} url(${b.image}) center/${fit} no-repeat`
+                                  ? `${bg} url(${normalizeImageUrlAdmin(b.image)}) center/${fit} no-repeat`
                                   : b.video ? '#111' : 'repeating-linear-gradient(45deg, #E5E7EB 0, #E5E7EB 8px, #F3F4F6 8px, #F3F4F6 16px)',
                                 borderRadius: '6px',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -6284,7 +6307,7 @@ export default function AdminDashboard({ onLogout }) {
                                 flex: '0 0 100px',
                                 height: '60px',
                                 background: hasImage
-                                  ? `${bg} url(${config.image}) center/${fit} no-repeat`
+                                  ? `${bg} url(${normalizeImageUrlAdmin(config.image)}) center/${fit} no-repeat`
                                   : hasVideo
                                     ? '#111'
                                     : 'repeating-linear-gradient(45deg, #E5E7EB 0, #E5E7EB 8px, #F3F4F6 8px, #F3F4F6 16px)',
