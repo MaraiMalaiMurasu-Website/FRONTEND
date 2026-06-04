@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import logoSrc from '../assets/logo.png';
 import { AdSlot } from './Ads.jsx';
+import { useLanguage, useT } from '../utils/i18n.js';
 
 // ---------- Live timestamp ----------
 function useLiveTime() {
@@ -14,8 +15,13 @@ function useLiveTime() {
 
 const TAMIL_DAYS = ["ஞாயிறு", "திங்கள்", "செவ்வாய்", "புதன்", "வியாழன்", "வெள்ளி", "சனி"];
 const TAMIL_MONTHS = ["ஜனவரி", "பிப்ரவரி", "மார்ச்", "ஏப்ரல்", "மே", "ஜூன்", "ஜூலை", "ஆகஸ்ட்", "செப்டம்பர்", "அக்டோபர்", "நவம்பர்", "டிசம்பர்"];
+const EN_DAYS = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+const EN_MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
 
-function fmtTamilDate(d) {
+function fmtTamilDate(d, lang = 'ta') {
+  if (lang === 'en') {
+    return `${EN_DAYS[d.getDay()]}, ${d.getDate()} ${EN_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+  }
   return `${TAMIL_DAYS[d.getDay()]}, ${d.getDate()} ${TAMIL_MONTHS[d.getMonth()]} ${d.getFullYear()}`;
 }
 function fmtClock(d) {
@@ -29,6 +35,8 @@ function fmtClock(d) {
 export function UtilityBar() {
   const now = useLiveTime();
   const [rni, setRni] = useState('RNI.No. TNTAM / 2023 / 88613');
+  const { lang, toggle } = useLanguage();
+  const t = useT();
 
   // Read RNI number from admin-saved customSiteSettings (or use default)
   useEffect(() => {
@@ -65,17 +73,23 @@ export function UtilityBar() {
     window.dispatchEvent(new PopStateEvent('popstate'));
   };
 
+  const handleContactClick = (e) => {
+    e.preventDefault();
+    window.history.pushState({}, '', '/contact');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   return (
     <div className="utility-bar">
       <div className="utility-inner">
         <div className="utility-left">
-          <span>{fmtTamilDate(now)}</span>
+          <span>{fmtTamilDate(now, lang)}</span>
           <span className="sep">|</span>
           <span style={{ fontFamily: "var(--mono)" }}>{fmtClock(now)} IST</span>
           <span className="sep">|</span>
-          <a href="#" onClick={handleEPaperClick} style={{ color: 'inherit', cursor: 'pointer' }}>இ-பேப்பர்</a>
-          <span>போட்காஸ்ட்</span>
-          <a href="#" onClick={handleSubscriptionClick} style={{ color: 'inherit', cursor: 'pointer' }}>சந்தா</a>
+          <a href="/epaper" onClick={handleEPaperClick} style={{ color: 'inherit', cursor: 'pointer' }}>{t('ePaper')}</a>
+          <span>{t('podcast')}</span>
+          <a href="/subscription" onClick={handleSubscriptionClick} style={{ color: 'inherit', cursor: 'pointer' }}>{t('subscription')}</a>
           {rni && (
             <>
               <span className="sep">|</span>
@@ -84,9 +98,26 @@ export function UtilityBar() {
           )}
         </div>
         <div className="utility-right">
-          <span className="pill"><span className="dot"></span>நேரலை இணைப்பு</span>
-          <span>தொடர்பு கொள்ள</span>
-          <span>ஆங்கிலம் / EN</span>
+          <span className="pill"><span className="dot"></span>{t('liveConnection')}</span>
+          <a href="/contact" onClick={handleContactClick} style={{ color: 'inherit', cursor: 'pointer' }}>{t('contactUs')}</a>
+          <a
+            href="#lang-toggle"
+            onClick={(e) => { e.preventDefault(); toggle(); }}
+            title={lang === 'ta' ? 'Switch to English' : 'தமிழுக்கு மாற்று'}
+            style={{
+              color: 'inherit',
+              cursor: 'pointer',
+              fontWeight: 700,
+              padding: '2px 10px',
+              border: '1px solid rgba(255,255,255,0.3)',
+              borderRadius: '999px',
+              transition: 'background 0.2s'
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.12)'; }}
+            onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent'; }}
+          >
+            {lang === 'ta' ? '🌐 ஆங்கிலம் / EN' : '🌐 தமிழ் / TA'}
+          </a>
         </div>
       </div>
     </div>
@@ -95,18 +126,19 @@ export function UtilityBar() {
 
 // ---------- Masthead ----------
 export function Masthead() {
+  const t = useT();
   return (
     <div className="masthead">
       <div className="masthead-inner">
         <div className="weather">
-          <span className="row"><strong>சென்னை</strong></span>
-          <span className="row">32°C · ஈரப்பதம் 68%</span>
-          <span className="row">தென்மேற்கு பருவக்காற்று</span>
+          <span className="row"><strong>{t('cityChennai')}</strong></span>
+          <span className="row">32°C · {t('weatherHumidity')} 68%</span>
+          <span className="row">{t('weatherWind')}</span>
         </div>
         <div className="brand">
           <div className="ornament">
             <span className="line"></span>
-            <span className="glyph">❖ நிறுவப்பட்டது 2023 ❖</span>
+            <span className="glyph">{t('founded2023')}</span>
             <span className="line"></span>
           </div>
           <a href="/" style={{ display: "inline-block" }}>
@@ -122,10 +154,32 @@ export function Masthead() {
   );
 }
 
+// Map slug → i18n key so PrimaryNav labels follow the language toggle
+const NAV_SLUG_TO_KEY = {
+  home: 'navHome',
+  headlines: 'navHeadlines',
+  law: 'navLaw',
+  spiritual: 'navSpiritual',
+  astrology: 'navAstrology',
+  cinema: 'navCinema',
+  sports: 'navSports',
+  more: 'navMore',
+  beauty: 'navBeauty',
+  cooking: 'navCooking',
+  contact: 'navContact',
+};
+
 export function PrimaryNav({ active = "headlines", onSearch }) {
   const [openDrop, setOpenDrop] = useState(null);
   const [navItems, setNavItems] = useState([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const t = useT();
+  const { lang } = useLanguage();
+
+  // When the language changes, force a re-render so dropdown labels update too
+  // (handled implicitly because useLanguage triggers re-render)
+  // eslint-disable-next-line no-unused-vars
+  const _lang = lang;
 
   // Close mobile menu on resize back to desktop, and on route navigation
   useEffect(() => {
@@ -235,7 +289,7 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
                 className={n.id === active ? "active" : ""}
                 onClick={(e) => { setMobileMenuOpen(false); handleNav(e, n.href); }}
               >
-                {n.label}
+                {NAV_SLUG_TO_KEY[n.id] ? t(NAV_SLUG_TO_KEY[n.id]) : n.label}
                 {n.dropdown && <span style={{ marginLeft: 6, fontSize: 10, opacity: 0.7 }}>▾</span>}
               </a>
               {n.dropdown && openDrop === n.id && (
@@ -246,7 +300,10 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
                   padding: 0, margin: 0,
                   boxShadow: "0 8px 24px rgba(0,0,0,0.35)"
                 }}>
-                  {n.dropdown.map(d => (
+                  {n.dropdown.map(d => {
+                    const slug = (d.href || '').replace(/^\//, '');
+                    const dLabel = NAV_SLUG_TO_KEY[slug] ? t(NAV_SLUG_TO_KEY[slug]) : d.label;
+                    return (
                     <li key={d.label} style={{ borderBottom: "1px solid #2A2420" }}>
                       <a href={d.href} style={{
                         display: "block", padding: "12px 18px",
@@ -255,9 +312,10 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
                         onClick={(e) => { setMobileMenuOpen(false); handleNav(e, d.href); }}
                         onMouseEnter={e => { e.currentTarget.style.background = "var(--accent)"; e.currentTarget.style.color = "#fff"; }}
                         onMouseLeave={e => { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "#F2ECE0"; }}
-                      >{d.label}</a>
+                      >{dLabel}</a>
                     </li>
-                  ))}
+                    );
+                  })}
                 </ul>
               )}
             </li>
@@ -269,9 +327,9 @@ export function PrimaryNav({ active = "headlines", onSearch }) {
               <circle cx="11" cy="11" r="7" />
               <line x1="21" y1="21" x2="16.6" y2="16.6" />
             </svg>
-            <span>தேடுங்கள்...</span>
+            <span>{t('navSearch')}</span>
           </button>
-          <a href="/contact" className="nav-cta" onClick={(e) => handleNav(e, "/contact")}>தொடர்பு</a>
+          <a href="/contact" className="nav-cta" onClick={(e) => handleNav(e, "/contact")}>{t('navContact')}</a>
         </div>
       </div>
     </nav>
@@ -568,12 +626,16 @@ export function SearchOverlay({ open, onClose }) {
 
 // ---------- Footer ----------
 export function Footer() {
+  const { lang } = useLanguage();
+  const t = useT();
   return (
     <footer>
       <div className="footer-inner">
         <div className="brand-block">
           <img src={logoSrc} alt="மறைமலை முரசு" style={{ maxWidth: "260px", width: "100%", height: "auto", display: "block", marginBottom: "12px", background: "#fff", padding: "8px" }} />
-          <p>தமிழ்நாட்டின் முன்னணி தமிழ் தினசரி. நம்பகமான செய்திகள், ஆழமான பகுப்பாய்வு, மக்களின் குரல்.</p>
+          <p>{lang === 'en'
+            ? "Tamil Nadu's leading Tamil weekly. Trusted news, in-depth analysis, the voice of the people."
+            : 'தமிழ்நாட்டின் முன்னணி தமிழ் வார இதழ். நம்பகமான செய்திகள், ஆழமான பகுப்பாய்வு, மக்களின் குரல்.'}</p>
           <div className="social">
             <a href="#" title="Facebook">f</a>
             <a href="#" title="Twitter">𝕏</a>
@@ -583,50 +645,50 @@ export function Footer() {
           </div>
         </div>
         <div>
-          <h4>செய்திகள்</h4>
+          <h4>{lang === 'en' ? 'News' : 'செய்திகள்'}</h4>
           <ul>
-            <li><a href="#">தமிழகம்</a></li>
-            <li><a href="#">தேசியம்</a></li>
-            <li><a href="#">உலகம்</a></li>
-            <li><a href="#">அரசியல்</a></li>
-            <li><a href="#">வணிகம்</a></li>
+            <li><a href="#">{lang === 'en' ? 'Tamil Nadu' : 'தமிழகம்'}</a></li>
+            <li><a href="#">{lang === 'en' ? 'National' : 'தேசியம்'}</a></li>
+            <li><a href="#">{lang === 'en' ? 'World' : 'உலகம்'}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Politics' : 'அரசியல்'}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Business' : 'வணிகம்'}</a></li>
           </ul>
         </div>
         <div>
-          <h4>பிரிவுகள்</h4>
+          <h4>{lang === 'en' ? 'Sections' : 'பிரிவுகள்'}</h4>
           <ul>
-            <li><a href="#">சினிமா</a></li>
-            <li><a href="#">விளையாட்டு</a></li>
-            <li><a href="#">வாழ்வியல்</a></li>
-            <li><a href="#">சமையல்</a></li>
-            <li><a href="#">கல்வி</a></li>
+            <li><a href="/cinema">{t('navCinema')}</a></li>
+            <li><a href="/sports">{t('navSports')}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Lifestyle' : 'வாழ்வியல்'}</a></li>
+            <li><a href="/cooking">{t('navCooking')}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Education' : 'கல்வி'}</a></li>
           </ul>
         </div>
         <div>
-          <h4>நிறுவனம்</h4>
+          <h4>{lang === 'en' ? 'Company' : 'நிறுவனம்'}</h4>
           <ul>
-            <li><a href="#">எங்களைப் பற்றி</a></li>
-            <li><a href="#">ஆசிரியர் குழு</a></li>
-            <li><a href="#">விளம்பரம்</a></li>
-            <li><a href="/contact">தொடர்பு</a></li>
-            <li><a href="#">தொழில் வாய்ப்பு</a></li>
-            <li><a href="/epaper" style={{ color: '#fff', fontWeight: 700 }}>📰 இ-பேப்பர்</a></li>
+            <li><a href="#">{t('footerAboutUs')}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Editorial Board' : 'ஆசிரியர் குழு'}</a></li>
+            <li><a href="#">{t('footerAds')}</a></li>
+            <li><a href="/contact">{t('navContact')}</a></li>
+            <li><a href="#">{t('footerCareers')}</a></li>
+            <li><a href="/epaper" style={{ color: '#fff', fontWeight: 700 }}>📰 {t('ePaper')}</a></li>
           </ul>
         </div>
         <div>
-          <h4>குழும இதழ்கள்</h4>
+          <h4>{lang === 'en' ? 'Group Publications' : 'குழும இதழ்கள்'}</h4>
           <ul>
-            <li><a href="#">முரசு வாரம்</a></li>
-            <li><a href="#">முரசு சினிமா</a></li>
-            <li><a href="#">முரசு சிறுவர்</a></li>
+            <li><a href="#">{lang === 'en' ? 'Murasu Weekly' : 'முரசு வாரம்'}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Murasu Cinema' : 'முரசு சினிமா'}</a></li>
+            <li><a href="#">{lang === 'en' ? 'Murasu Children' : 'முரசு சிறுவர்'}</a></li>
             <li><a href="#">Murasu Today</a></li>
-            <li><a href="#">அரிய புத்தகங்கள்</a></li>
+            <li><a href="#">{lang === 'en' ? 'Rare Books' : 'அரிய புத்தகங்கள்'}</a></li>
           </ul>
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© 2026 மறைமலை முரசு குழுமம் · சர்வ உரிமைகளும் பாதுகாக்கப்பட்டவை</span>
-        <span>தனியுரிமை · விதிமுறைகள் · குக்கீ கொள்கை</span>
+        <span>{t('footerCopyright')}</span>
+        <span>{t('footerPrivacy')} · {t('footerTerms')} · {lang === 'en' ? 'Cookie Policy' : 'குக்கீ கொள்கை'}</span>
       </div>
     </footer>
   );
