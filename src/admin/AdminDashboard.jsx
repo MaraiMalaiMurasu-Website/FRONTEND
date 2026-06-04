@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { savePdfBlob, resolvePdfUrl, deletePdf } from '../utils/pdfStorage.js';
 import { isoToInputDatetime } from '../utils/time.js';
 import { saveAdSettings as saveAdSettingsToApi, checkApiHealth, ADS_API_BASE } from '../utils/adsApi.js';
+import { handleImageUpload } from '../utils/imageCompress.js';
 import logoSrc from '../assets/logo.png';
 
 // SVGs for modern SaaS feel
@@ -5945,18 +5946,17 @@ export default function AdminDashboard({ onLogout }) {
                     <div>
                       <label style={{ display: 'block', marginBottom: '8px', fontWeight: '600', color: '#374151', fontSize: '14px' }}>Ad Image URL</label>
                       <div style={{ display: 'flex', gap: '8px' }}>
-                        <input type="text" value={adSettings.houseImageUrl} onChange={e => setAdSettings({...adSettings, houseImageUrl: e.target.value})} placeholder="https://example.com/banner.jpg" style={{ ...inputStyle, flex: 1 }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)' }} onBlur={e => { e.currentTarget.style.borderColor = '#D1D5DB' }} />
+                        <input type="text" value={adSettings.houseImageUrl} onChange={e => setAdSettings({...adSettings, houseImageUrl: normalizeImageUrlAdmin(e.target.value)})} placeholder="https://example.com/banner.jpg" style={{ ...inputStyle, flex: 1 }} onFocus={e => { e.currentTarget.style.borderColor = 'var(--accent)' }} onBlur={e => { e.currentTarget.style.borderColor = '#D1D5DB' }} />
                         <label style={{ padding: '0 16px', background: '#F3F4F6', border: '1px solid #D1D5DB', borderRadius: '8px', cursor: 'pointer', fontWeight: '600', color: '#4B5563', display: 'flex', alignItems: 'center' }}>
                           Browse
-                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={(e) => {
+                          <input type="file" accept="image/*" style={{ display: 'none' }} onChange={async (e) => {
                             const file = e.target.files[0];
-                            if (file) {
-                              const reader = new FileReader();
-                              reader.onloadend = () => {
-                                setAdSettings({...adSettings, houseImageUrl: reader.result});
-                              };
-                              reader.readAsDataURL(file);
-                            }
+                            e.target.value = '';
+                            if (!file) return;
+                            const result = await handleImageUpload(file, { maxWidth: 1600, quality: 0.85 });
+                            if (!result.ok) { alert('Image processing failed: ' + result.error); return; }
+                            setAdSettings({ ...adSettings, houseImageUrl: result.dataUrl });
+                            if (result.originalKB > 500) console.log('[House Ad] ' + result.message);
                           }} />
                         </label>
                       </div>
@@ -6114,7 +6114,7 @@ export default function AdminDashboard({ onLogout }) {
                                     type="text"
                                     placeholder="Paste image URL (Google Drive / Imgur / direct .png)"
                                     value={b.image && !b.image.startsWith('data:') ? b.image : ''}
-                                    onChange={e => updateBanner(i, 'image', e.target.value)}
+                                    onChange={e => updateBanner(i, 'image', normalizeImageUrlAdmin(e.target.value))}
                                     style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
                                   />
                                   <label style={{ padding: '5px 10px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
@@ -6123,12 +6123,19 @@ export default function AdminDashboard({ onLogout }) {
                                       type="file"
                                       accept="image/*"
                                       style={{ display: 'none' }}
-                                      onChange={e => {
+                                      onChange={async e => {
                                         const file = e.target.files[0];
+                                        e.target.value = ''; // allow re-selecting same file
                                         if (!file) return;
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => updateBanner(i, 'image', reader.result);
-                                        reader.readAsDataURL(file);
+                                        const result = await handleImageUpload(file, { maxWidth: 1600, quality: 0.85 });
+                                        if (!result.ok) {
+                                          alert('Image processing failed: ' + result.error);
+                                          return;
+                                        }
+                                        updateBanner(i, 'image', result.dataUrl);
+                                        if (result.originalKB > 500) {
+                                          console.log(`[Banner ${b.label || i}] ${result.message}`);
+                                        }
                                       }}
                                     />
                                   </label>
@@ -6356,7 +6363,12 @@ export default function AdminDashboard({ onLogout }) {
                                     type="text"
                                     placeholder="Paste image URL (Google Drive / Imgur / direct .png) — or upload below"
                                     value={config.image && !config.image.startsWith('data:') ? config.image : ''}
-                                    onChange={(e) => updateSlot(slot.id, 'image', e.target.value)}
+                                    onChange={(e) => {
+                                      // Normalize on save so the stored URL is already the direct-image
+                                      // version. This means the live site renders it even if it's still
+                                      // running an older build without the normalizer.
+                                      updateSlot(slot.id, 'image', normalizeImageUrlAdmin(e.target.value));
+                                    }}
                                     style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
                                   />
                                   <label style={{ padding: '5px 10px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
@@ -6365,14 +6377,19 @@ export default function AdminDashboard({ onLogout }) {
                                       type="file"
                                       accept="image/*"
                                       style={{ display: 'none' }}
-                                      onChange={(e) => {
+                                      onChange={async (e) => {
                                         const file = e.target.files[0];
+                                        e.target.value = ''; // allow re-selecting same file
                                         if (!file) return;
-                                        const reader = new FileReader();
-                                        reader.onloadend = () => {
-                                          updateSlot(slot.id, 'image', reader.result);
-                                        };
-                                        reader.readAsDataURL(file);
+                                        const result = await handleImageUpload(file, { maxWidth: 1600, quality: 0.85 });
+                                        if (!result.ok) {
+                                          alert('Image processing failed: ' + result.error);
+                                          return;
+                                        }
+                                        updateSlot(slot.id, 'image', result.dataUrl);
+                                        if (result.originalKB > 500) {
+                                          console.log(`[Slot ${slot.id}] ${result.message}`);
+                                        }
                                       }}
                                     />
                                   </label>
