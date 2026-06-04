@@ -2,6 +2,14 @@
 import { get, set } from '../_lib/store.js';
 import { checkAuth, getBody, DEFAULT_ADS, applyCors } from '../_lib/config.js';
 
+// Tell Vercel to allow larger request bodies (default is ~4.5 MB on Hobby).
+// Ads with base64 image data URLs can be heavy.
+export const config = {
+  api: {
+    bodyParser: { sizeLimit: '10mb' },
+  },
+};
+
 export default async function handler(req, res) {
   if (applyCors(req, res)) return;
   try {
@@ -14,9 +22,14 @@ export default async function handler(req, res) {
       if (!checkAuth(req, res)) return;
       const body = getBody(req);
       if (!body || typeof body !== 'object') {
-        return res.status(400).json({ error: 'Body must be an object' });
+        return res.status(400).json({ error: 'Body must be an object', received: typeof req.body });
       }
-      await set('ads', body);
+      try {
+        await set('ads', body);
+      } catch (storeErr) {
+        console.error('store.set("ads") failed:', storeErr);
+        return res.status(500).json({ error: 'Storage write failed', detail: storeErr.message });
+      }
       return res.status(200).json({ ok: true, savedAt: new Date().toISOString() });
     }
 
@@ -35,7 +48,12 @@ export default async function handler(req, res) {
           else merged.houseAds[slotId] = { ...(current.houseAds[slotId] || {}), ...config };
         }
       }
-      await set('ads', merged);
+      try {
+        await set('ads', merged);
+      } catch (storeErr) {
+        console.error('store.set("ads") PATCH failed:', storeErr);
+        return res.status(500).json({ error: 'Storage write failed', detail: storeErr.message });
+      }
       return res.status(200).json({ ok: true, savedAt: new Date().toISOString() });
     }
 
@@ -43,6 +61,6 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {
     console.error('/api/ads failed:', err);
-    return res.status(500).json({ error: 'Internal error' });
+    return res.status(500).json({ error: 'Internal error', detail: err.message });
   }
 }

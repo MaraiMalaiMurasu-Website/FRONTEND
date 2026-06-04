@@ -2,6 +2,14 @@
 import { get, set, del } from '../_lib/store.js';
 import { checkAuth, getBody, ALLOWED_KEYS, applyCors } from '../_lib/config.js';
 
+// Allow large bodies (admin Pages Editor + Home Editor can push large JSON
+// when many cards / images are present).
+export const config = {
+  api: {
+    bodyParser: { sizeLimit: '10mb' },
+  },
+};
+
 export default async function handler(req, res) {
   if (applyCors(req, res)) return;
   const { key } = req.query;

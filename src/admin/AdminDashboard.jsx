@@ -5853,13 +5853,32 @@ export default function AdminDashboard({ onLogout }) {
                 onClick={async () => {
                   const result = await saveAdSettingsToApi(adSettings);
                   if (result.ok) {
-                    alert('✅ Ad Settings Saved!\n\nPushed to the shared Ads API — every browser and device will see the changes within 10 seconds.');
+                    alert(`✅ Ad Settings Saved!\n\nPushed to the shared Ads API — every browser and device will see the changes within 10 seconds.${result.sizeKB ? `\n\nPayload size: ${result.sizeKB} KB` : ''}`);
                   } else {
                     const isLocalhost = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+                    const errDetail = result.error ? `\n\nServer response:\n${result.error}` : '';
+                    const sizeNote = result.sizeKB ? `\n\nYour payload was ${result.sizeKB} KB.` : '';
+
+                    // Specific error: payload too large
+                    if (result.code === 'PAYLOAD_TOO_LARGE') {
+                      alert(`⚠️ Cannot save: ad images are too large.${sizeNote}\n\nVercel allows a maximum of 4500 KB per request.\n\nFix: open each ad slot, click the image, and re-upload a smaller file (try WebP under 500 KB each).${errDetail}`);
+                      return;
+                    }
+                    // Specific error: 401 unauthorized → token mismatch
+                    if (result.error && result.error.includes('401')) {
+                      alert(`⚠️ Unauthorized (401) — admin token mismatch.${sizeNote}\n\nThe ADMIN_TOKEN env var on Vercel does not match VITE_ADS_API_TOKEN in the frontend build.\n\nFix:\n1. Vercel → Settings → Environment Variables\n2. Make sure ADMIN_TOKEN = maraimalai-murasu-2026\n3. Redeploy${errDetail}`);
+                      return;
+                    }
+                    // Specific error: 413 payload too large (Vercel caught it before us)
+                    if (result.error && (result.error.includes('413') || result.error.includes('FUNCTION_PAYLOAD_TOO_LARGE'))) {
+                      alert(`⚠️ Vercel rejected the request — payload too large.${sizeNote}\n\nReduce image sizes (use WebP, target under 500 KB each).${errDetail}`);
+                      return;
+                    }
+
                     if (isLocalhost) {
-                      alert('⚠️ Saved locally only.\n\nThe Ads API server is not reachable on http://localhost:5050.\n\nStart the dev server in a new terminal:\ncd server\nnpm start\n\nThen click Save Ad Settings again.');
+                      alert(`⚠️ Saved locally only.${sizeNote}\n\nThe Ads API server is not reachable on http://localhost:5050.\n\nStart the dev server in a new terminal:\ncd server\nnpm start${errDetail}`);
                     } else {
-                      alert('⚠️ Saved to this browser only.\n\nThe production Ads API backend is not deployed yet, so changes will not sync to other visitors of ' + window.location.hostname + '.\n\nTo make ads visible to everyone, the backend must be deployed on Hostinger (Node.js App) or Vercel.\n\nSee VERCEL-DEPLOY.md or GO-LIVE.md in the project root for step-by-step deployment instructions.');
+                      alert(`⚠️ Saved to this browser only.${sizeNote}\n\nThe save failed against the production Ads API backend.\n\nCheck:\n1. Open browser DevTools (F12) → Console tab — look for red errors\n2. Open DevTools → Network tab — find the POST to /api/ads — check Response${errDetail}`);
                     }
                   }
                 }}
@@ -5936,12 +5955,220 @@ export default function AdminDashboard({ onLogout }) {
                 </div>
               </div>
 
+              {/* ============== MY CUSTOM BANNERS — add / remove freely ============== */}
+              <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', border: '2px solid #10B981', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginTop: '32px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                  <div>
+                    <h3 style={{ fontSize: '18px', margin: '0 0 6px 0', color: '#065F46', fontWeight: '700' }}>➕ My Custom Banners (add/remove freely)</h3>
+                    <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
+                      Create your own banner ads from scratch. Each one shows up on the page you pick. Click <strong>+ Add New Banner</strong> to create one — use <strong>🗑 Delete</strong> to remove it permanently.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const list = Array.isArray(adSettings.customBanners) ? adSettings.customBanners : [];
+                      const newBanner = {
+                        id: 'custom-' + Date.now(),
+                        label: 'Untitled Banner',
+                        size: '728x90',
+                        page: 'Homepage',
+                        image: '',
+                        video: '',
+                        link: '',
+                        fit: 'cover',
+                        bg: '#000000',
+                        active: true,
+                      };
+                      const updated = { ...adSettings, customBanners: [...list, newBanner] };
+                      setAdSettings(updated);
+                      saveAdSettingsToApi(updated);
+                    }}
+                    style={{ padding: '10px 18px', background: '#10B981', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontSize: '13px', fontWeight: '700', boxShadow: '0 4px 6px rgba(16, 185, 129, 0.25)', whiteSpace: 'nowrap' }}
+                  >
+                    + Add New Banner
+                  </button>
+                </div>
+
+                {(() => {
+                  const customBanners = Array.isArray(adSettings.customBanners) ? adSettings.customBanners : [];
+                  if (customBanners.length === 0) {
+                    return (
+                      <div style={{ padding: '32px', background: '#F0FDF4', border: '2px dashed #86EFAC', borderRadius: '8px', textAlign: 'center', color: '#065F46' }}>
+                        <div style={{ fontSize: '40px', marginBottom: '8px' }}>📢</div>
+                        <div style={{ fontSize: '14px', fontWeight: '700', marginBottom: '4px' }}>No custom banners yet.</div>
+                        <div style={{ fontSize: '12px', opacity: 0.85 }}>Click <strong>+ Add New Banner</strong> above to create your first one.</div>
+                      </div>
+                    );
+                  }
+
+                  const PAGE_OPTIONS = ['Homepage', 'Headlines', 'Law', 'Cinema', 'Sports', 'Beauty', 'Cooking', 'Astrology', 'Spiritual', 'More', 'Contact', 'Subscription', 'ePaper', 'Every Page'];
+                  const SIZE_OPTIONS = ['728x90', '728x250', '970x90', '970x250', '970x350', '300x250', '300x600', '250x250', '320x100', '160x600'];
+
+                  const updateBanner = (i, field, value) => {
+                    const next = customBanners.map((b, idx) => idx === i ? { ...b, [field]: value } : b);
+                    const updated = { ...adSettings, customBanners: next };
+                    setAdSettings(updated);
+                    saveAdSettingsToApi(updated);
+                  };
+                  const deleteBanner = (i) => {
+                    if (!window.confirm('Delete this banner permanently? This cannot be undone.')) return;
+                    const next = customBanners.filter((_, idx) => idx !== i);
+                    const updated = { ...adSettings, customBanners: next };
+                    setAdSettings(updated);
+                    saveAdSettingsToApi(updated);
+                  };
+
+                  return (
+                    <div style={{ display: 'grid', gap: '14px' }}>
+                      {customBanners.map((b, i) => {
+                        const hasContent = !!(b.image || b.video);
+                        const fit = b.fit || 'cover';
+                        const bg = b.bg || '#000000';
+                        return (
+                          <div key={b.id || i} style={{ padding: '16px', background: hasContent ? '#F0FDF4' : '#F9FAFB', borderRadius: '8px', border: `2px solid ${hasContent ? '#86EFAC' : '#E5E7EB'}` }}>
+                            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '14px', flexWrap: 'wrap' }}>
+                              {/* Preview */}
+                              <div style={{
+                                flex: '0 0 120px',
+                                height: '70px',
+                                background: b.image
+                                  ? `${bg} url(${b.image}) center/${fit} no-repeat`
+                                  : b.video ? '#111' : 'repeating-linear-gradient(45deg, #E5E7EB 0, #E5E7EB 8px, #F3F4F6 8px, #F3F4F6 16px)',
+                                borderRadius: '6px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '10px', color: b.video ? '#fff' : '#9CA3AF', fontFamily: 'monospace'
+                              }}>
+                                {b.video && !b.image && <span style={{ fontSize: '24px' }}>▶</span>}
+                                {!hasContent && b.size}
+                              </div>
+
+                              {/* Form */}
+                              <div style={{ flex: 1, minWidth: '240px' }}>
+                                {/* Row 1: name + active toggle + delete */}
+                                <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                  <input
+                                    type="text"
+                                    placeholder="Banner name (e.g. Diwali Saree Sale)"
+                                    value={b.label || ''}
+                                    onChange={e => updateBanner(i, 'label', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '13px', padding: '6px 10px', flex: 2, minWidth: '180px', fontWeight: 700 }}
+                                  />
+                                  <label style={{ display: 'flex', alignItems: 'center', gap: '5px', fontSize: '12px', fontWeight: '600', color: b.active === false ? '#9CA3AF' : '#065F46', cursor: 'pointer' }}>
+                                    <input type="checkbox" checked={b.active !== false} onChange={e => updateBanner(i, 'active', e.target.checked)} />
+                                    {b.active === false ? 'Hidden' : 'Active'}
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => deleteBanner(i)}
+                                    style={{ padding: '6px 12px', background: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626', borderRadius: '5px', cursor: 'pointer', fontSize: '12px', fontWeight: '700' }}
+                                    title="Delete this banner permanently"
+                                  >
+                                    🗑 Delete
+                                  </button>
+                                </div>
+
+                                {/* Row 2: page + size */}
+                                <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                  <div style={{ flex: 1, minWidth: '140px' }}>
+                                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#6B7280', marginBottom: '2px' }}>Show on Page</label>
+                                    <select value={b.page || 'Homepage'} onChange={e => updateBanner(i, 'page', e.target.value)} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}>
+                                      {PAGE_OPTIONS.map(p => <option key={p}>{p}</option>)}
+                                    </select>
+                                  </div>
+                                  <div style={{ flex: 1, minWidth: '120px' }}>
+                                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 700, color: '#6B7280', marginBottom: '2px' }}>Size (W×H)</label>
+                                    <select value={b.size || '728x90'} onChange={e => updateBanner(i, 'size', e.target.value)} style={{ ...inputStyle, fontSize: '12px', padding: '6px 10px' }}>
+                                      {SIZE_OPTIONS.map(s => <option key={s}>{s}</option>)}
+                                    </select>
+                                  </div>
+                                </div>
+
+                                {/* Row 3: link + upload + media picker */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginBottom: '6px', flexWrap: 'wrap' }}>
+                                  <input
+                                    type="text"
+                                    placeholder="Target link URL (https://...)"
+                                    value={b.link || ''}
+                                    onChange={e => updateBanner(i, 'link', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
+                                  />
+                                  <label style={{ padding: '5px 10px', background: 'var(--accent)', color: '#fff', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700', whiteSpace: 'nowrap' }}>
+                                    {b.image ? '↻ Replace Image' : '+ Upload Image'}
+                                    <input
+                                      type="file"
+                                      accept="image/*"
+                                      style={{ display: 'none' }}
+                                      onChange={e => {
+                                        const file = e.target.files[0];
+                                        if (!file) return;
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => updateBanner(i, 'image', reader.result);
+                                        reader.readAsDataURL(file);
+                                      }}
+                                    />
+                                  </label>
+                                  <button
+                                    type="button"
+                                    onClick={() => openMediaPicker((url) => updateBanner(i, 'image', url))}
+                                    style={{ padding: '5px 8px', background: '#F3F4F6', border: '1px solid #D1D5DB', color: '#374151', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '600' }}
+                                    title="Pick from media library"
+                                  >
+                                    📁
+                                  </button>
+                                </div>
+
+                                {/* Row 4: video + fit + bg + clear content */}
+                                <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+                                  <input
+                                    type="text"
+                                    placeholder="▶ Video URL — YouTube / Vimeo / .mp4 (optional)"
+                                    value={b.video || ''}
+                                    onChange={e => updateBanner(i, 'video', e.target.value)}
+                                    style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', flex: 1, minWidth: '180px' }}
+                                  />
+                                  <select value={fit} onChange={e => updateBanner(i, 'fit', e.target.value)} style={{ ...inputStyle, fontSize: '11px', padding: '5px 8px', width: '120px' }}>
+                                    <option value="cover">Fit: Cover</option>
+                                    <option value="contain">Fit: Contain</option>
+                                    <option value="natural">Fit: Natural ★</option>
+                                  </select>
+                                  <input
+                                    type="color"
+                                    value={bg}
+                                    onChange={e => updateBanner(i, 'bg', e.target.value)}
+                                    style={{ width: '34px', height: '28px', border: '1px solid #D1D5DB', borderRadius: '4px', cursor: 'pointer', padding: 0 }}
+                                    title="Background colour"
+                                  />
+                                  {hasContent && (
+                                    <button
+                                      type="button"
+                                      onClick={() => { updateBanner(i, 'image', ''); updateBanner(i, 'video', ''); }}
+                                      style={{ padding: '5px 8px', background: '#FEF3C7', border: '1px solid #FCD34D', color: '#92400E', borderRadius: '4px', cursor: 'pointer', fontSize: '11px', fontWeight: '700' }}
+                                      title="Clear image / video but keep the banner slot"
+                                    >
+                                      Clear Content
+                                    </button>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      })}
+                      <div style={{ fontSize: '12px', color: '#374151', padding: '12px 14px', background: '#FAFAF7', borderRadius: '6px', lineHeight: 1.6 }}>
+                        💡 <strong>Active</strong> banners show on the live site. Uncheck to hide without deleting. Use <strong>🗑 Delete</strong> to permanently remove a banner.
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+
               {/* ============== PER-SLOT AD MANAGER ============== */}
               <div style={{ background: '#fff', padding: '32px', borderRadius: '16px', border: '2px solid var(--accent)', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.05)', marginTop: '32px' }}>
                 <div style={{ marginBottom: '20px' }}>
                   <h3 style={{ fontSize: '18px', margin: '0 0 6px 0', color: '#111827', fontWeight: '700' }}>📐 Per-Slot Ad Manager (every ad box on every page)</h3>
                   <p style={{ fontSize: '13px', color: '#6B7280', margin: 0 }}>
-                    Upload a unique image for <strong>each</strong> ad placement. These override Google/Meta ads on that specific slot only.
+                    Upload a unique image for <strong>each</strong> built-in ad placement. These override Google/Meta ads on that specific slot only.
                     Auto-saves on upload — refresh the live site to see changes.
                   </p>
                 </div>

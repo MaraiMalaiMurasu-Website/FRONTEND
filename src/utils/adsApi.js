@@ -89,6 +89,18 @@ export async function saveAdSettings(next) {
   // Always update local cache immediately so the admin UI is responsive.
   writeCache(next);
 
+  // Pre-flight: check payload size. Vercel serverless functions have a 4.5MB
+  // request body limit. Large image uploads (base64 data URLs) can easily
+  // exceed this. Warn the user with a clear, actionable message instead of a
+  // generic network error.
+  const bodyStr = JSON.stringify(next);
+  const sizeKB = Math.round(bodyStr.length / 1024);
+  if (bodyStr.length > 4_400_000) {
+    const msg = `Payload too large (${sizeKB} KB). Vercel limit is 4500 KB. Reduce image sizes or use Patch instead.`;
+    console.warn('adsApi:', msg);
+    return { ok: false, source: 'local', error: msg, code: 'PAYLOAD_TOO_LARGE', sizeKB };
+  }
+
   try {
     const res = await fetch(`${API_BASE}/api/ads`, {
       method: 'POST',
@@ -96,18 +108,19 @@ export async function saveAdSettings(next) {
         'Content-Type': 'application/json',
         'x-admin-token': API_TOKEN,
       },
-      body: JSON.stringify(next),
+      body: bodyStr,
     });
     if (!res.ok) {
-      const text = await res.text();
-      throw new Error(`HTTP ${res.status}: ${text}`);
+      const text = await res.text().catch(() => '');
+      console.warn(`adsApi: HTTP ${res.status} response body:`, text);
+      throw new Error(`HTTP ${res.status} — ${text || res.statusText}`);
     }
     const data = await res.json();
-    lastFetchedJson = JSON.stringify(next);
-    return { ok: true, source: 'api', savedAt: data.savedAt };
+    lastFetchedJson = bodyStr;
+    return { ok: true, source: 'api', savedAt: data.savedAt, sizeKB };
   } catch (err) {
     console.warn('adsApi: save to server failed, kept locally only', err.message);
-    return { ok: false, source: 'local', error: err.message };
+    return { ok: false, source: 'local', error: err.message, sizeKB };
   }
 }
 
