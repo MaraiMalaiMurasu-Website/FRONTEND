@@ -97,6 +97,90 @@ table { max-width: 100%; }
 .admin-mobile-toggle svg { width: 22px; height: 22px; }
 
 /* ════════════════════════════════════════════════════════════════════════════
+   NARROW DESKTOP / LAPTOP — 901–1440 px
+   Tightens utility bar + nav so the red "தொடர்பு" CTA never gets cut off.
+   Keeps the same desktop design — only shrinks paddings/fonts a bit so
+   everything fits on smaller monitors (Macbook Air, 14" laptops, 1366×768).
+════════════════════════════════════════════════════════════════════════════ */
+@media (min-width: 901px) and (max-width: 1440px) {
+  /* ---------- Utility bar — tighter gaps so right-side actions stay visible ---------- */
+  .utility-inner { padding: 6px 16px !important; font-size: 11.5px !important; }
+  .utility-left  { gap: 12px !important; flex-wrap: wrap; }
+  .utility-right { gap: 12px !important; flex-shrink: 0; white-space: nowrap; }
+  .utility-right .pill { padding: 2px 9px !important; font-size: 10.5px !important; }
+  .utility-right a[href="/contact"] { white-space: nowrap; }
+
+  /* RNI number compact */
+  .utility-left .rni-no { font-size: 11px !important; letter-spacing: 0 !important; }
+
+  /* ---------- Masthead — shrink the right ad column so brand has room ---------- */
+  .masthead-inner {
+    grid-template-columns: 1fr 2.2fr 1fr !important;
+    gap: 14px !important;
+    padding: 18px 22px 14px !important;
+  }
+  .masthead .edition-meta { justify-self: end; }
+  .masthead .masthead-ad-left { justify-self: start !important; align-items: flex-start !important; }
+  .masthead .edition-meta .ad-slot { max-width: 250px !important; }
+  .brand h1 { font-size: clamp(40px, 4.5vw, 56px) !important; line-height: 1.05 !important; }
+
+  /* ---------- Primary nav — keep horizontal, tighten paddings ---------- */
+  .nav-inner {
+    padding: 0 18px !important;
+    height: 50px !important;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: center;
+    gap: 4px;
+  }
+  /* Nav list shrinks first; actions never wrap */
+  .nav-list {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow: hidden;
+  }
+  .nav-list a {
+    font-size: 13.5px !important;
+    padding: 0 11px !important;
+    white-space: nowrap;
+  }
+  /* Actions = search + CTA — fixed-ish width, never wraps, never disappears */
+  .nav-actions {
+    flex: 0 0 auto;
+    display: flex !important;
+    align-items: center;
+    gap: 6px !important;
+    margin-left: auto !important;
+  }
+  .nav-actions .nav-search-bar {
+    min-width: 0 !important;
+    width: 140px !important;
+    padding: 0 12px !important;
+    font-size: 12.5px !important;
+    white-space: nowrap;
+  }
+  .nav-actions .nav-cta {
+    padding: 0 18px !important;
+    font-size: 13.5px !important;
+    margin-left: 4px !important;
+    white-space: nowrap;
+    flex-shrink: 0 !important;
+  }
+}
+
+/* Even tighter at < 1200 px so 1366×768 / Macbook Air fits cleanly */
+@media (min-width: 901px) and (max-width: 1200px) {
+  .nav-list a { font-size: 12.5px !important; padding: 0 8px !important; }
+  .nav-actions .nav-search-bar { width: 110px !important; padding: 0 10px !important; }
+  .nav-actions .nav-cta { padding: 0 14px !important; font-size: 12.5px !important; }
+  .utility-inner { font-size: 11px !important; }
+  /* Drop the "live connection" pill if it's eating space; keep contact + lang */
+  .utility-right .pill { display: none !important; }
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
    TABLET — ≤ 1024 px
    Reduce paddings/fonts, collapse 3-col grids to 2, sidebars below content
 ════════════════════════════════════════════════════════════════════════════ */
