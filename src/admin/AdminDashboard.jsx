@@ -6219,6 +6219,7 @@ export default function AdminDashboard({ onLogout }) {
                 {(() => {
                   // All known ad slots in the site
                   const SLOTS = [
+                    { id: 'header-left-sq',          size: '250x250', label: 'Header Left Square (was weather)',  page: 'Every page (header)' },
                     { id: 'header-right-sq',         size: '250x250', label: 'Header Right Square',                page: 'Every page (header)' },
                     { id: 'home-leaderboard-1',      size: '970x350', label: 'Home — Top Stories Billboard (Tall)', page: 'Homepage' },
                     { id: 'home-billboard-samsung',  size: '970x350', label: 'Home — Sponsor Billboard (Tall)',   page: 'Homepage' },

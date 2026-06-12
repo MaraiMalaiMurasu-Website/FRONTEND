@@ -130,10 +130,9 @@ export function Masthead() {
   return (
     <div className="masthead">
       <div className="masthead-inner">
-        <div className="weather">
-          <span className="row"><strong>{t('cityChennai')}</strong></span>
-          <span className="row">32°C · {t('weatherHumidity')} 68%</span>
-          <span className="row">{t('weatherWind')}</span>
+        {/* LEFT — mirrors the right-side ad. Was the Chennai weather widget. */}
+        <div className="edition-meta masthead-ad-left" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '16px' }}>
+          <AdSlot network="google" size="250x250" slotId="header-left-sq" note="Google AdSense · Square" style={{ width: '250px' }} />
         </div>
         <div className="brand">
           <div className="ornament">
@@ -146,6 +145,7 @@ export function Masthead() {
           </a>
 
         </div>
+        {/* RIGHT — unchanged 250x250 ad slot */}
         <div className="edition-meta" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '16px' }}>
           <AdSlot network="google" size="250x250" slotId="header-right-sq" note="Google AdSense · Square" style={{ width: '250px' }} />
         </div>
